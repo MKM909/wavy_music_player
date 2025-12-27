@@ -12,6 +12,13 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.greenAccent,
+      child: Center(
+        child: Icon(
+          Icons.person_rounded,
+          color: Colors.white,
+          size: 100,
+        ),
+      ),
     );
   }
 }

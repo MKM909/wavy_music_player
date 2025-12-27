@@ -1,10 +1,14 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:wavy_muic_player/screens/home_page.dart';
 import 'package:wavy_muic_player/screens/music_page.dart';
 import 'package:wavy_muic_player/screens/profile_page.dart';
 import 'package:wavy_muic_player/screens/search_page.dart';
+import 'package:wavy_muic_player/widgets/music_playing.dart';
 
+import '../bottom_sheets/music_player_sheet.dart';
+import '../clippers/squircle_clipper.dart';
 import '../widgets/wavy_navigation_bar.dart';
 
 // Demo usage matching the design
@@ -18,6 +22,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   int _currentPage = 0;
   late PageController _pageController;
+  late AnimationController _vinylController;
+  bool isLiked = false;
   GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
 
   List<Widget> tab = [
@@ -31,11 +37,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentPage);
+    _vinylController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _vinylController.dispose();
     super.dispose();
   }
 
@@ -84,6 +95,29 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             bottom: 0,
             left: 0,
             right: 0,
+            child: Container(
+              height: 100,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFF342E1B).withValues(alpha: 0.1),
+                    const Color(0xFF342E1B).withValues(alpha: 0.6),
+                    const Color(0xFF342E1B).withValues(alpha: 0.9),
+                    const Color(0xFF342E1B),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
             child: CurvedNavigationBar(
               key: _bottomNavigationKey, // 👈 Key for programmatic control
               items: <Widget>[
@@ -95,11 +129,18 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               index: _currentPage,
               backgroundColor: Colors.transparent,
               height: 75,
-              animationDuration: Duration(milliseconds: 800),
               color: Color(0xFF342E1B),
               onTap: _onNavBarTapped, // 👈 Animates PageView when tapped
             ),
           ),
+
+          Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: MusicPlaying(vinylController: _vinylController),
+          )
+
         ],
       ),
     );

@@ -212,7 +212,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Inspiration from Dribbble : [@Nixtio](https://dribbble.com/shots/15731031-Music-Player-App-Design)
+- Inspiration from Dribbble : [@Nixtio](https://dribbble.com/shots/15731031-Music-Player-App-Design), [Budiarti R.](https://dribbble.com/shots/25787741-Music-Player-UI-Dark-Mode-Aesthetic)
 - Flutter community for amazing packages and support
 - Spotify for providing comprehensive API documentation
 - All contributors who help improve this project

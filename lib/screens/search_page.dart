@@ -12,6 +12,13 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.red,
+      child: Center(
+        child: Icon(
+          Icons.search,
+          color: Colors.white,
+          size: 100,
+        ),
+      ),
     );
   }
 }
