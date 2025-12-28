@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wavy_muic_player/widgets/music_playing.dart';
+import 'package:wavy_muic_player/widgets/mini_player.dart';
 
 import '../../bottom_sheets/music_player_sheet.dart';
 import '../../clippers/squircle_clipper.dart';
@@ -175,7 +175,7 @@ class _PlaylistViewingPageState extends State<PlaylistViewingPage> with TickerPr
             bottom: 20,
             left: 0,
             right: 0,
-            child: MusicPlaying(vinylController: _vinylController),
+            child: MiniPlayer(),
           )
 
         ],

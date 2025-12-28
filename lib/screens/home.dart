@@ -5,7 +5,7 @@ import 'package:wavy_muic_player/screens/home_page.dart';
 import 'package:wavy_muic_player/screens/music_page.dart';
 import 'package:wavy_muic_player/screens/profile_page.dart';
 import 'package:wavy_muic_player/screens/search_page.dart';
-import 'package:wavy_muic_player/widgets/music_playing.dart';
+import 'package:wavy_muic_player/widgets/mini_player.dart';
 
 import '../bottom_sheets/music_player_sheet.dart';
 import '../clippers/squircle_clipper.dart';
@@ -138,7 +138,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             bottom: 100,
             left: 0,
             right: 0,
-            child: MusicPlaying(vinylController: _vinylController),
+            child: MiniPlayer(),
           )
 
         ],

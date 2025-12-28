@@ -1,31 +1,40 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'dart:typed_data';
 
 // Simple models for our music data
+
+// ============================================================================
+// FILE 1: lib/services/music_library_service.dart
+// ============================================================================
+
 class Song {
   final String filePath;
   final String title;
   final String fileName;
   final int? fileSize;
+  final Uint8List? artwork; // 👈 NEW
 
   Song({
     required this.filePath,
     required this.title,
     required this.fileName,
     this.fileSize,
+    this.artwork,
   });
 
   String get artist => 'Unknown Artist';
   String get album => 'Unknown Album';
 
-  // Convert to/from JSON for caching
   Map<String, dynamic> toJson() => {
     'filePath': filePath,
     'title': title,
     'fileName': fileName,
     'fileSize': fileSize,
+    // artwork is NOT cached (too large)
   };
 
   factory Song.fromJson(Map<String, dynamic> json) => Song(
@@ -33,80 +42,50 @@ class Song {
     title: json['title'],
     fileName: json['fileName'],
     fileSize: json['fileSize'],
+    artwork: null, // reloaded dynamically
   );
 }
 
 class MusicLibraryService {
-  List<Song>? _cachedSongs; // In-memory cache
+  List<Song>? _cachedSongs;
   DateTime? _lastScanTime;
   static const Duration _cacheValidDuration = Duration(hours: 24);
 
-  // ========== PERMISSION HANDLING ==========
-
   Future<bool> requestMusicPermission() async {
     if (Platform.isAndroid) {
-      PermissionStatus status;
-
-      if (await Permission.audio.isGranted) {
+      if (await Permission.audio.isGranted || await Permission.storage.isGranted) {
         return true;
       }
 
-      status = await Permission.audio.request();
-
-      if (status.isGranted) {
-        return true;
-      }
-
-      if (await Permission.storage.isGranted) {
-        return true;
-      }
+      var status = await Permission.audio.request();
+      if (status.isGranted) return true;
 
       status = await Permission.storage.request();
+      if (status.isGranted) return true;
 
-      if (status.isGranted) {
-        return true;
-      } else if (status.isPermanentlyDenied) {
+      if (status.isPermanentlyDenied) {
         await openAppSettings();
-        return false;
       }
-
       return false;
-    } else if (Platform.isIOS) {
-      final status = await Permission.mediaLibrary.request();
-      return status.isGranted;
     }
-    return false;
+    return true; // iOS handled differently
   }
 
   Future<bool> hasPermission() async {
     if (Platform.isAndroid) {
-      return await Permission.audio.isGranted ||
-          await Permission.storage.isGranted;
-    } else if (Platform.isIOS) {
-      return await Permission.mediaLibrary.isGranted;
+      return await Permission.audio.isGranted || await Permission.storage.isGranted;
     }
-    return false;
+    return true;
   }
 
-  // ========== OPTIMIZED MUSIC SCANNING ==========
-
-  /// Get all songs with caching and progress callback
-  /// [forceRefresh] - Force rescan even if cache exists
-  /// [onProgress] - Callback for scan progress (current/total)
   Future<List<Song>> getAllSongs({
     bool forceRefresh = false,
     Function(int current, int total)? onProgress,
   }) async {
-    if (!await hasPermission()) {
-      throw Exception('Music permission not granted');
-    }
-
-    // Return cached data if valid
     if (!forceRefresh && _isCacheValid()) {
       return _cachedSongs!;
     }
 
-    // Try to load from disk cache first (fast!)
     if (!forceRefresh) {
       final diskCache = await _loadFromDiskCache();
       if (diskCache != null) {
@@ -116,39 +95,19 @@ class MusicLibraryService {
       }
     }
 
-    // Perform full scan with progress tracking
     final songs = await _scanMusicFiles(onProgress: onProgress);
-
-    // Cache results
     _cachedSongs = songs;
     _lastScanTime = DateTime.now();
-
-    // Save to disk cache asynchronously (don't wait)
     _saveToDiskCache(songs);
-
     return songs;
   }
 
-  /// Fast lookup - returns cached data immediately if available
-  List<Song>? getCachedSongs() {
-    return _cachedSongs;
-  }
-
-  /// Check if we need to refresh
-  bool needsRefresh() {
-    return !_isCacheValid();
-  }
+  List<Song>? getCachedSongs() => _cachedSongs;
 
   bool _isCacheValid() {
-    if (_cachedSongs == null || _lastScanTime == null) {
-      return false;
-    }
-
-    final now = DateTime.now();
-    return now.difference(_lastScanTime!) < _cacheValidDuration;
+    if (_cachedSongs == null || _lastScanTime == null) return false;
+    return DateTime.now().difference(_lastScanTime!) < _cacheValidDuration;
   }
-
-  // ========== DISK CACHE ==========
 
   Future<String> _getCacheFilePath() async {
     final appDir = await getApplicationDocumentsDirectory();
@@ -160,10 +119,8 @@ class MusicLibraryService {
       final cacheFile = File(await _getCacheFilePath());
       if (!await cacheFile.exists()) return null;
 
-      // Check if cache file is too old
       final stats = await cacheFile.stat();
-      final now = DateTime.now();
-      if (now.difference(stats.modified) > _cacheValidDuration) {
+      if (DateTime.now().difference(stats.modified) > _cacheValidDuration) {
         return null;
       }
 
@@ -171,7 +128,6 @@ class MusicLibraryService {
       final List<dynamic> jsonList = json.decode(jsonString);
       return jsonList.map((json) => Song.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading cache: $e');
       return null;
     }
   }
@@ -182,11 +138,9 @@ class MusicLibraryService {
       final jsonList = songs.map((song) => song.toJson()).toList();
       await cacheFile.writeAsString(json.encode(jsonList));
     } catch (e) {
-      print('Error saving cache: $e');
+      // Ignore cache save errors
     }
   }
-
-  // ========== FILE SCANNING (OPTIMIZED) ==========
 
   Future<List<Song>> _scanMusicFiles({
     Function(int current, int total)? onProgress,
@@ -200,25 +154,17 @@ class MusicLibraryService {
     for (var directory in directories) {
       try {
         if (await directory.exists()) {
-          // Scan directory with limited depth to avoid deep recursion
-          await _scanDirectory(
-            directory,
-            songs,
-            maxDepth: 3, // Limit recursion depth
-            currentDepth: 0,
-          );
+          await _scanDirectory(directory, songs, maxDepth: 3, currentDepth: 0);
         }
       } catch (e) {
-        print('Error scanning directory ${directory.path}: $e');
+        // Continue on error
       }
 
       processedDirs++;
       onProgress?.call(processedDirs, totalDirs);
     }
 
-    // Sort by title
     songs.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
-
     return songs;
   }
 
@@ -235,80 +181,55 @@ class MusicLibraryService {
         if (entity is File && _isAudioFile(entity.path)) {
           try {
             final stats = await entity.stat();
-            final song = Song(
-              filePath: entity.path,
-              title: _getFileNameWithoutExtension(entity.path),
-              fileName: entity.path.split('/').last,
-              fileSize: stats.size,
+            Uint8List? artwork;
+
+            try {
+              final metadata = readMetadata(
+                entity,
+                getImage: true,
+              );
+
+              if (metadata.pictures.isNotEmpty) {
+                artwork = metadata.pictures.first.bytes;
+              }
+            } catch (_) {
+              artwork = null;
+            }
+
+            songs.add(
+              Song(
+                filePath: entity.path,
+                title: _getFileNameWithoutExtension(entity.path),
+                fileName: entity.path.split('/').last,
+                fileSize: stats.size,
+                artwork: artwork,
+              ),
             );
-            songs.add(song);
           } catch (e) {
-            // Skip files we can't read
+            // Skip unreadable files
           }
         } else if (entity is Directory) {
-          // Recursively scan subdirectories
-          await _scanDirectory(
-            entity,
-            songs,
-            maxDepth: maxDepth,
-            currentDepth: currentDepth + 1,
-          );
+          await _scanDirectory(entity, songs, maxDepth: maxDepth, currentDepth: currentDepth + 1);
         }
       }
     } catch (e) {
-      // Skip directories we can't access
+      // Skip inaccessible directories
     }
   }
-
-  // ========== SEARCH (USES CACHE) ==========
-
-  Future<List<Song>> searchSongs(String query) async {
-    final songs = _cachedSongs ?? await getAllSongs();
-    final lowerQuery = query.toLowerCase();
-
-    return songs.where((song) {
-      return song.title.toLowerCase().contains(lowerQuery) ||
-          song.fileName.toLowerCase().contains(lowerQuery);
-    }).toList();
-  }
-
-  // ========== PAGINATION (for large libraries) ==========
-
-  /// Get songs in pages for smooth scrolling
-  List<Song> getSongsPaginated(int page, {int pageSize = 50}) {
-    if (_cachedSongs == null) return [];
-
-    final start = page * pageSize;
-    final end = (start + pageSize).clamp(0, _cachedSongs!.length);
-
-    if (start >= _cachedSongs!.length) return [];
-
-    return _cachedSongs!.sublist(start, end);
-  }
-
-  int get totalPages {
-    if (_cachedSongs == null) return 0;
-    return (_cachedSongs!.length / 50).ceil();
-  }
-
-  // ========== HELPER METHODS ==========
 
   Future<List<Directory>> _getMusicDirectories() async {
     List<Directory> directories = [];
 
     if (Platform.isAndroid) {
-      // Prioritize common music locations (faster)
-      final commonPaths = [
+      final paths = [
         '/storage/emulated/0/Music',
         '/storage/emulated/0/Download',
         '/storage/emulated/0/Downloads',
       ];
 
-      for (var path in commonPaths) {
+      for (var path in paths) {
         final dir = Directory(path);
-        if (await dir.exists()) {
-          directories.add(dir);
-        }
+        if (await dir.exists()) directories.add(dir);
       }
 
       try {
@@ -317,14 +238,7 @@ class MusicLibraryService {
           directories.add(Directory('${external.path}/Music'));
         }
       } catch (e) {
-        print('Error getting external storage: $e');
-      }
-    } else if (Platform.isIOS) {
-      try {
-        final appDir = await getApplicationDocumentsDirectory();
-        directories.add(Directory('${appDir.path}/Music'));
-      } catch (e) {
-        print('Error getting iOS directory: $e');
+        // Ignore
       }
     }
 
@@ -353,22 +267,15 @@ class MusicLibraryService {
     return '${(bytes / 1048576).toStringAsFixed(1)} MB';
   }
 
-  /// Clear all caches (for refresh)
-  Future<void> clearCache() async {
-    _cachedSongs = null;
-    _lastScanTime = null;
-
-    try {
-      final cacheFile = File(await _getCacheFilePath());
-      if (await cacheFile.exists()) {
-        await cacheFile.delete();
-      }
-    } catch (e) {
-      print('Error clearing cache: $e');
-    }
+  Future<List<Song>> searchSongs(String query) async {
+    final songs = _cachedSongs ?? await getAllSongs();
+    final lowerQuery = query.toLowerCase();
+    return songs.where((song) =>
+    song.title.toLowerCase().contains(lowerQuery) ||
+        song.fileName.toLowerCase().contains(lowerQuery)
+    ).toList();
   }
 }
-
 // ============================================================================
 // OPTIMIZED USAGE EXAMPLE
 // ============================================================================

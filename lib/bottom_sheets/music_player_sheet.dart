@@ -1,10 +1,12 @@
-import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:wavy_muic_player/widgets/continous_wave.dart';
+import 'package:provider/provider.dart';
 
+
+import '../controllers/music_controller.dart';
 import '../painters/offset_squircle_background.dart';
 import '../painters/softwave_painter.dart';
+import '../services/music_library_service.dart';
 import '../widgets/waveform_slidder.dart';
 
 class MusicPlayerSheet extends StatefulWidget {
@@ -37,7 +39,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
     _vinylController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat();
+    );
   }
 
   @override
@@ -49,114 +51,125 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 1.0, // Start fully expanded
-      minChildSize: 0.3, // Can be dragged down to 30%
-      maxChildSize: 1.0,
-      builder: (context, scrollController) {
-        return ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(40),
-            topRight: Radius.circular(40),
-          ),
-          child: Container(
-            padding: EdgeInsets.only(top: 5),
-            margin: EdgeInsets.only(top: 25),
-            decoration: BoxDecoration(
-              color: Colors.white,
+    return Consumer<MusicController>(
+        builder: (context, musicController, child) {
+          if (musicController.isPlaying) {
+            if (!_vinylController.isAnimating) {
+              _vinylController.repeat();
+            }
+          } else {
+            _vinylController.stop();
+          }
+          return DraggableScrollableSheet(
+          initialChildSize: 1.0, // Start fully expanded
+          minChildSize: 0.3, // Can be dragged down to 30%
+          maxChildSize: 1.0,
+          builder: (context, scrollController) {
+            return ClipRRect(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(40),
                 topRight: Radius.circular(40),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: AnimatedWave(color: Color(0xFF342E1B),size: const Size(double.infinity, 365), sec: 3,)
-                ),
-
-                Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: AnimatedWave(color: Color(0xFFFB923C),size: const Size(double.infinity, 345), sec: 2,)
-                ),
-
-                Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: AnimatedWave(color: Color(0xFFFFE695),size: const Size(double.infinity, 335), sec: 1,)
-                ),
-                Column(
-                  children: [
-                    // Drag handle
-                    Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 12, bottom: 8),
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF342E1B).withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(left: 30 , right : 30.0),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          _buildHeader(),
-                          const SizedBox(height: 30),
-
-                          // Main Album Card
-                          _buildAlbumCard(),
-                          const SizedBox(height: 35),
-
-                          _buildSongInfo(),
-                          const SizedBox(height: 34),
-
-                        ],
-                      ),
-                    ),
-
-                    // Header with Recent Players
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 30 , right : 30.0),
-                            child: Column(
-                              children: [
-                                // Progress Bar
-                                _buildProgressBar(),
-                                const SizedBox(height: 32),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+              child: Container(
+                padding: EdgeInsets.only(top: 5),
+                margin: EdgeInsets.only(top: 25),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(40),
+                    topRight: Radius.circular(40),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, -5),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: AnimatedWave(color: Color(0xFF342E1B),size: const Size(double.infinity, 365), sec: 15,)
+                    ),
+
+                    Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: AnimatedWave(color: Color(0xFFFB923C),size: const Size(double.infinity, 345), sec: 10,)
+                    ),
+
+                    Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: AnimatedWave(color: Color(0xFFFFE695),size: const Size(double.infinity, 335), sec: 5,)
+                    ),
+                    Column(
+                      children: [
+                        // Drag handle
+                        Center(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 12, bottom: 8),
+                            width: 40,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF342E1B).withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.only(left: 30 , right : 30.0),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 20),
+                              _buildHeader(),
+                              const SizedBox(height: 30),
+
+                              // Main Album Card
+                              _buildAlbumCard(),
+                              const SizedBox(height: 35),
+
+                              _buildSongInfo(musicController),
+                              const SizedBox(height: 34),
+
+                            ],
+                          ),
+                        ),
+
+                        // Header with Recent Players
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 30 , right : 30.0),
+                                child: Column(
+                                  children: [
+                                    // Progress Bar
+                                    _buildProgressBar(musicController),
+                                    const SizedBox(height: 32),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
-      },
+      }
     );
   }
 
@@ -224,7 +237,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(0xFFFFE695).withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
@@ -389,17 +402,25 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
     );
   }
 
-  Widget _buildSongInfo() {
+  Widget _buildSongInfo(MusicController musicController) {
+
+    Song song = musicController.currentSong!;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
           children: [
-            Icon(
-              Icons.shuffle,
-              color: const Color(0xFF342E1B).withOpacity(0.4),
-              size: 28,
+            InkWell(
+              onTap: (){
+                musicController.toggleShuffle();
+              },
+              child: Icon(
+                Icons.shuffle,
+                color: musicController.isShuffleOn ? Color(0xFF342E1B) :const Color(0xFF342E1B).withOpacity(0.4),
+                size: 28,
+              ),
             ),
             SizedBox(height: 8),
             GestureDetector(
@@ -414,38 +435,53 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                 size: 28,
               ),
             ),
+            SizedBox(height: 8),
+            InkWell(
+              onTap: (){
+                musicController.toggleRepeatMode();
+              },
+              child: Icon(
+                musicController.repeatMode == RepeatMode.off ? Icons.repeat : (musicController.repeatMode == RepeatMode.all ? Icons.repeat_sharp: Icons.repeat_one),
+                color: musicController.repeatMode != RepeatMode.off ? Color(0xFF342E1B) :const Color(0xFF342E1B).withOpacity(0.4),
+                size: 28,
+              ),
+            ),
           ],
         ),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'The Flamingo\nStory',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF342E1B),
-                height: 1.2,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                song.title ?? 'No Song Playing',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                textAlign: TextAlign.left,
+                style: const TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF342E1B),
+                  height: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Erik Osborne',
-              style: TextStyle(
-                fontSize: 20,
-                color: const Color(0xFF342E1B).withOpacity(0.6),
-                fontWeight: FontWeight.w400,
+              const SizedBox(height: 8),
+              Text(
+                song.artist ?? '',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: const Color(0xFF342E1B).withOpacity(0.6),
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(MusicController musicController) {
     return Column(
       children: [
         Row(
@@ -456,33 +492,35 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                 fillColor: const Color(0xFF342E1B),
                 thumbColor: const Color(0xFFFB923C),
                 inactiveColor: const Color(0xFF342E1B).withOpacity(0.1),
-                progress: progress,
+                progress: musicController.progress,
                 onChanged: (value) {
-                  setState(() => progress = value);
+                  final duration = musicController.totalDuration;
+                  final seekTo = duration * value;
+                  musicController.seek(seekTo);
                 },
               ),
             ),
             const SizedBox(width: 20),
-            _buildPlaybackControls()
+            _buildPlaybackControls(musicController)
           ],
         ),
         const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '0:35',
+                musicController.formatDuration(musicController.currentPosition),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 16,
                   color: const Color(0xFF342E1B).withOpacity(0.6),
                 ),
               ),
               Text(
-                '3:45',
+                musicController.formatDuration(musicController.totalDuration),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 16,
                   color: const Color(0xFF342E1B).withOpacity(0.6),
                 ),
               ),
@@ -493,29 +531,20 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
     );
   }
 
-  Widget _buildPlaybackControls() {
+  Widget _buildPlaybackControls(MusicController musicController) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          onPressed: () {},
+          onPressed: () => musicController.playPrevious(),
           icon: const Icon(Icons.skip_previous_outlined),
           iconSize: 30,
           color: const Color(0xFF342E1B),
         ),
 
         GestureDetector(
-          onTap: () {
-            setState(() {
-              isPlaying = !isPlaying;
-              if (isPlaying) {
-                _vinylController.repeat();
-              } else {
-                _vinylController.stop();
-              }
-            });
-          },
+          onTap: () => musicController.togglePlayPause(),
           child: SizedBox(
             width: 64,
             height: 64,
@@ -531,7 +560,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                 ),
                 Center(
                   child: Icon(
-                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    musicController.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                     color: Colors.black,
                     size: 28,
                   ),
@@ -542,7 +571,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
         ),
 
         IconButton(
-          onPressed: () {},
+          onPressed: () => musicController.playNext(),
           icon: Icon(Icons.skip_next_outlined),
           iconSize: 30,
           color: const Color(0xFF342E1B),
@@ -552,14 +581,3 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
   }
 
 }
-
-// Example usage in your app:
-/*
-// To show the sheet:
-FloatingActionButton(
-  onPressed: () {
-    MusicPlayerSheet.show(context);
-  },
-  child: Icon(Icons.music_note),
-)
-*/

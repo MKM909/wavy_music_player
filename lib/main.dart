@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wavy_muic_player/screens/home.dart';
+import 'package:provider/provider.dart';
+import 'controllers/music_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,13 +10,19 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widgets is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      home: Home(),
+    return ChangeNotifierProvider(
+      create: (_) => MusicController(),
+      child: MaterialApp(
+        title: 'Wavy Music Player',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.amber,
+          useMaterial3: true,
+        ),
+        home: const Home(),
+      ),
     );
   }
 }
