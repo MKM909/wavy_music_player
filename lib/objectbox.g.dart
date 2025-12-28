@@ -13,6 +13,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:objectbox/internal.dart'
     as obx_int; // generated code can access "internal" functionality
 import 'package:objectbox/objectbox.dart' as obx;
+import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'model/liked_songs.dart';
 
@@ -22,7 +23,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(1, 721369586500848292),
       name: 'LikedSong',
-      lastPropertyId: const obx_int.IdUid(5, 1455277848622322951),
+      lastPropertyId: const obx_int.IdUid(6, 5329832154792718521),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -49,6 +50,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(5, 1455277848622322951),
             name: 'artwork',
             type: 23,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 5329832154792718521),
+            name: 'fileSize',
+            type: 6,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -66,16 +72,17 @@ final _entities = <obx_int.ModelEntity>[
 /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
 /// the ObjectBox Flutter library to fix loading the native ObjectBox library
 /// on Android 6 and older.
-obx.Store openStore(
+Future<obx.Store> openStore(
     {String? directory,
     int? maxDBSizeInKB,
     int? maxDataSizeInKB,
     int? fileMode,
     int? maxReaders,
     bool queriesCaseSensitiveDefault = true,
-    String? macosApplicationGroup}) {
+    String? macosApplicationGroup}) async {
+  await loadObjectBoxLibraryAndroidCompat();
   return obx.Store(getObjectBoxModel(),
-      directory: directory,
+      directory: directory ?? (await defaultStoreDirectory()).path,
       maxDBSizeInKB: maxDBSizeInKB,
       maxDataSizeInKB: maxDataSizeInKB,
       fileMode: fileMode,
@@ -117,12 +124,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final artworkOffset = object.artwork == null
               ? null
               : fbb.writeListInt8(object.artwork!);
-          fbb.startTable(6);
+          fbb.startTable(7);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, filePathOffset);
           fbb.addOffset(2, titleOffset);
           fbb.addOffset(3, artistOffset);
           fbb.addOffset(4, artworkOffset);
+          fbb.addInt64(5, object.fileSize);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -139,12 +147,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGet(buffer, rootOffset, 10, '');
           final artworkParam = const fb.Uint8ListReader(lazy: false)
               .vTableGetNullable(buffer, rootOffset, 12) as Uint8List?;
+          final fileSizeParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 14);
           final object = LikedSong(
               id: idParam,
               filePath: filePathParam,
               title: titleParam,
               artist: artistParam,
-              artwork: artworkParam);
+              artwork: artworkParam,
+              fileSize: fileSizeParam);
 
           return object;
         })
@@ -174,4 +185,8 @@ class LikedSong_ {
   /// see [LikedSong.artwork]
   static final artwork =
       obx.QueryByteVectorProperty<LikedSong>(_entities[0].properties[4]);
+
+  /// see [LikedSong.fileSize]
+  static final fileSize =
+      obx.QueryIntegerProperty<LikedSong>(_entities[0].properties[5]);
 }

@@ -6,6 +6,7 @@ class LikedSong {
   int id;
 
   String filePath;
+  final int? fileSize;
   String title;
   String artist;
   Uint8List? artwork;
@@ -16,5 +17,6 @@ class LikedSong {
     required this.title,
     required this.artist,
     this.artwork,
+    required this.fileSize,
   });
 }

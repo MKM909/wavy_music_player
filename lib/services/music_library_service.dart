@@ -5,46 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data';
 
-// Simple models for our music data
-
-// ============================================================================
-// FILE 1: lib/services/music_library_service.dart
-// ============================================================================
-
-class Song {
-  final String filePath;
-  final String title;
-  final String fileName;
-  final int? fileSize;
-  final Uint8List? artwork; // 👈 NEW
-
-  Song({
-    required this.filePath,
-    required this.title,
-    required this.fileName,
-    this.fileSize,
-    this.artwork,
-  });
-
-  String get artist => 'Unknown Artist';
-  String get album => 'Unknown Album';
-
-  Map<String, dynamic> toJson() => {
-    'filePath': filePath,
-    'title': title,
-    'fileName': fileName,
-    'fileSize': fileSize,
-    // artwork is NOT cached (too large)
-  };
-
-  factory Song.fromJson(Map<String, dynamic> json) => Song(
-    filePath: json['filePath'],
-    title: json['title'],
-    fileName: json['fileName'],
-    fileSize: json['fileSize'],
-    artwork: null, // reloaded dynamically
-  );
-}
+import '../model/song.dart';
 
 class MusicLibraryService {
   List<Song>? _cachedSongs;
@@ -202,7 +163,6 @@ class MusicLibraryService {
                 title: _getFileNameWithoutExtension(entity.path),
                 fileName: entity.path.split('/').last,
                 fileSize: stats.size,
-                artwork: artwork,
               ),
             );
           } catch (e) {

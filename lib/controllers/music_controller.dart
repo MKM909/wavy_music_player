@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import '../model/song.dart';
 import '../services/music_library_service.dart';
 
 enum PlaybackState {

@@ -4,9 +4,13 @@ import 'package:provider/provider.dart';
 
 
 import '../controllers/music_controller.dart';
+import '../model/liked_songs.dart';
+import '../model/song.dart';
 import '../painters/offset_squircle_background.dart';
 import '../painters/softwave_painter.dart';
+import '../services/liked_song_service.dart';
 import '../services/music_library_service.dart';
+import '../widgets/album_artwork.dart';
 import '../widgets/waveform_slidder.dart';
 
 class MusicPlayerSheet extends StatefulWidget {
@@ -40,6 +44,14 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
       vsync: this,
       duration: const Duration(seconds: 3),
     );
+    final musicController = context.read<MusicController>();
+    final likedService = LikedSongsService();
+
+    final song = musicController.currentSong;
+    if (song != null) {
+      isLiked = likedService.isLiked(song.filePath);
+    }
+
   }
 
   @override
@@ -53,6 +65,11 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
   Widget build(BuildContext context) {
     return Consumer<MusicController>(
         builder: (context, musicController, child) {
+
+          final currentSong = musicController.currentSong!;
+
+          isLiked = LikedSongsService().isLiked(currentSong.filePath);
+
           if (musicController.isPlaying) {
             if (!_vinylController.isAnimating) {
               _vinylController.repeat();
@@ -124,16 +141,16 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                           ),
                         ),
 
+                        const SizedBox(height: 30),
+
+                        // Main Album Card
+                        _buildAlbumCard(musicController),
+
                         Padding(
                           padding: const EdgeInsets.only(left: 30 , right : 30.0),
                           child: Column(
                             children: [
-                              const SizedBox(height: 20),
-                              _buildHeader(),
-                              const SizedBox(height: 30),
 
-                              // Main Album Card
-                              _buildAlbumCard(),
                               const SizedBox(height: 35),
 
                               _buildSongInfo(musicController),
@@ -231,175 +248,283 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
     );
   }
 
-  Widget _buildAlbumCard() {
-    return Transform.rotate(
-      angle: 0.02,
-      child: Container(
+  Widget _buildAlbumCard(MusicController musicController) {
+    if(musicController.currentSong?.albumArt != null){
+      return SizedBox(
+        height: 320,
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: Color(0xFFFFE695).withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
+        child: Stack(
+          children: [
+            // Vinyl Record
+            Positioned(
+              top: 0,
+              right: 10,
+              bottom: 0,
+              child: RotationTransition(
+                turns: _vinylController,
+                child: Container(
+                  width: 320,
+                  height: 320,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF342E1B), Colors.grey.shade700,],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 280,
+                          height: 280,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.brown.shade100.withOpacity(0.5),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Container(
+                          width: 240,
+                          height: 240,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.brown.shade300.withOpacity(0.5),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFFDE68A),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
+            Positioned(
+              top: 0,
+              right: 60,
+              bottom: 0,
+              left: 20,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  width: double.infinity,
+                  height: 240,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF83733E).withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: AlbumArtwork(
+                    song: musicController.currentSong!,
+                    size: 240,
+                    borderRadius: BorderRadius.circular(8),
+                    backgroundColor: const Color(0xFF342E1B),
+                  ),
+                ),
+              ),
+            )
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Album Cover
-                  Container(
-                    width: 240,
-                    height: 240,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFFFDE68A), Color(0xFFFBBF24)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+      );
+    } else {
+      return Transform.rotate(
+        angle: 0.02,
+        child: Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(horizontal: 30),
+          decoration: BoxDecoration(
+            color: Color(0xFF83733E).withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Album Cover
+                    Container(
+                      width: 240,
+                      height: 240,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFFFDE68A), Color(0xFFFBBF24)],
                         ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 160,
-                            height: 160,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFFFB923C), Color(0xFFEF4444)],
-                              ),
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 80,
-                                height: 80,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [Color(0xFF1F2937), Color(0xFF000000)],
-                                  ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 160,
+                              height: 160,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFFFB923C), Color(0xFFEF4444)],
                                 ),
-                                child: Center(
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0xFFFB923C),
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [Color(0xFF1F2937), Color(0xFF000000)],
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFFFB923C),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          bottom: 16,
-                          right: 16,
-                          child: Text(
-                            'CNS n66',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: const Color(0xFF342E1B).withOpacity(0.5),
-                              fontWeight: FontWeight.w600,
+                          Positioned(
+                            bottom: 16,
+                            right: 16,
+                            child: Text(
+                              'CNS n66',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: const Color(0xFF342E1B).withOpacity(0.5),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Vinyl Record
-                  Positioned(
-                    top: 20,
-                    right: -40,
-                    child: RotationTransition(
-                      turns: _vinylController,
-                      child: Container(
-                        width: 140,
-                        height: 140,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF1F2937), Color(0xFF000000)],
+                    // Vinyl Record
+                    Positioned(
+                      top: 20,
+                      right: -40,
+                      child: RotationTransition(
+                        turns: _vinylController,
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF1F2937), Color(0xFF000000)],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.1),
-                                    width: 2,
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.1),
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Center(
-                              child: Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.1),
-                                    width: 2,
+                              Center(
+                                child: Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.1),
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Center(
-                              child: Container(
-                                width: 48,
-                                height: 48,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFFFDE68A),
+                              Center(
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFFFDE68A),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildSongInfo(MusicController musicController) {
@@ -423,9 +548,24 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
               ),
             ),
             SizedBox(height: 8),
-            GestureDetector(
+            InkWell(
               onTap: () {
+                final service = LikedSongsService();
+                final song = musicController.currentSong!;
+
                 setState(() {
+                  if (isLiked) {
+                    service.removeSong(song.filePath);
+                  } else {
+                    service.addSong(
+                      LikedSong(
+                          filePath: song.filePath,
+                          title: song.title,
+                          artist: song.artist,
+                          fileSize: song.fileSize
+                      ),
+                    );
+                  }
                   isLiked = !isLiked;
                 });
               },

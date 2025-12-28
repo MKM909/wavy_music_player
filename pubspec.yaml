@@ -44,6 +44,8 @@ dependencies:
   provider: ^6.1.5+1
   audio_metadata_reader: ^1.4.2
   objectbox: ^2.0.0
+  audiotags: ^1.4.5
+  objectbox_flutter_libs: ^2.5.1
 
 dev_dependencies:
   flutter_test:

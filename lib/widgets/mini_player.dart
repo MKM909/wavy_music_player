@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../bottom_sheets/music_player_sheet.dart';
 import '../clippers/squircle_clipper.dart';
 import '../controllers/music_controller.dart';
+import '../model/liked_songs.dart';
+import '../services/liked_song_service.dart';
+import 'album_artwork.dart';
 
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key,});
@@ -17,6 +20,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
 
   bool isLiked = false;
   late final AnimationController _vinylController;
+  String? _lastSongPath;
 
   @override
   void initState() {
@@ -25,6 +29,20 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(seconds: 6),
     );
+  }
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final musicController = context.read<MusicController>();
+    final likedService = LikedSongsService();
+
+    final song = musicController.currentSong;
+    if (song != null) {
+      isLiked = likedService.isLiked(song.filePath);
+    }
   }
 
   @override
@@ -40,11 +58,13 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             return const SizedBox.shrink();
           }
 
-          if(controller.currentSong!.artwork != null){
-            debugPrint("MYAPP: mini player -> image loaded");
-          }else{
-            debugPrint("MYAPP: mini player -> image not loaded");
+          final currentSong = controller.currentSong!;
+
+          if (_lastSongPath != currentSong.filePath) {
+            _lastSongPath = currentSong.filePath;
+            isLiked = LikedSongsService().isLiked(currentSong.filePath);
           }
+
 
           if (controller.isPlaying) {
             if (!_vinylController.isAnimating) {
@@ -99,16 +119,15 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                           ClipPath(
                             clipper: SquircleClipper(20),
                             child: Container(
-                              width: 45,
-                              height: 45,
+                              width: 50,
+                              height: 50,
                               color: Color(0xFF342E1B),
-                              child: controller.currentSong?.artwork != null
-                                  ? Image.memory(
-                                controller.currentSong!.artwork!,
-                                fit: BoxFit.cover,
-                                gaplessPlayback: true,
-                              )
-                                  : Icon(Icons.music_note_rounded, color: Colors.white),
+                              child: AlbumArtwork(
+                                song: currentSong,
+                                size: 45,
+                                borderRadius: BorderRadius.circular(8),
+                                backgroundColor: const Color(0xFF342E1B),
+                              ),
                             ),
                           ),
 
@@ -154,18 +173,41 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                             ),
                           ),
                           SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                isLiked = !isLiked;
-                              });
+
+                          StreamBuilder<bool>(
+                            stream: LikedSongsService()
+                                .watchIsLiked(controller.currentSong!.filePath),
+                            builder: (context, snapshot) {
+                              final isLiked = snapshot.data ?? false;
+
+                              return InkWell(
+                                onTap: () {
+                                  final likedService = LikedSongsService();
+                                  if (isLiked) {
+                                    likedService.removeSong(controller.currentSong!.filePath);
+                                  } else {
+                                    likedService.addSong(
+                                      LikedSong(
+                                        filePath: controller.currentSong!.filePath,
+                                        title: controller.currentSong!.title,
+                                        artist: controller.currentSong!.artist,
+                                        fileSize: controller.currentSong!.fileSize,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Icon(
+                                  isLiked ? Icons.favorite : Icons.favorite_border,
+                                  color: isLiked
+                                      ? Colors.red
+                                      : const Color(0xFF342E1B).withOpacity(0.4),
+                                  size: 28,
+                                ),
+                              );
                             },
-                            child: Icon(
-                              isLiked ? Icons.favorite : Icons.favorite_border,
-                              color: isLiked ? Colors.red : const Color(0xFF342E1B).withOpacity(0.4),
-                              size: 28,
-                            ),
                           ),
+
+
 
                           SizedBox(width: 8),
 

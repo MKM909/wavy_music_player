@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:721369586500848292",
-      "lastPropertyId": "5:1455277848622322951",
+      "lastPropertyId": "6:5329832154792718521",
       "name": "LikedSong",
       "properties": [
         {
@@ -33,6 +33,11 @@
           "id": "5:1455277848622322951",
           "name": "artwork",
           "type": 23
+        },
+        {
+          "id": "6:5329832154792718521",
+          "name": "fileSize",
+          "type": 6
         }
       ],
       "relations": []
