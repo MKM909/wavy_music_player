@@ -39,16 +39,30 @@ class PlaylistService {
 
   // ───────── SONGS ─────────
 
-  void addSongToPlaylist(int playlistId, Song song) {
+  bool addSongToPlaylist(int playlistId, Song song) {
+    // ⛔ Prevent duplicates in same playlist
+    final exists = _songBox.query(
+      PlaylistSong_.playlistId.equals(playlistId) &
+      PlaylistSong_.filePath.equals(song.filePath),
+    ).build().findFirst();
+
+    if (exists != null) {
+      return false; // Song already exists → do nothing
+    }
+
     _songBox.put(
       PlaylistSong(
         playlistId: playlistId,
         filePath: song.filePath,
         title: song.title,
         fileSize: song.fileSize!,
+        fileName: song.fileName,
       ),
     );
+
+    return true;
   }
+
 
   void removeSongFromPlaylist(int playlistId, String filePath) {
     final q = _songBox.query(

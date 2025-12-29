@@ -95,7 +95,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             },
 
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
+              margin: EdgeInsets.symmetric(horizontal: 12),
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [Color(0xFFFFE695),Color(0xFFFBBF24),]),

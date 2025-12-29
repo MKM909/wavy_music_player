@@ -68,7 +68,7 @@
     },
     {
       "id": "3:141093537709303771",
-      "lastPropertyId": "6:4528598348219360402",
+      "lastPropertyId": "7:8164021208804157999",
       "name": "PlaylistSong",
       "properties": [
         {
@@ -96,6 +96,11 @@
           "id": "6:4528598348219360402",
           "name": "playlistId",
           "type": 6
+        },
+        {
+          "id": "7:8164021208804157999",
+          "name": "fileName",
+          "type": 9
         }
       ],
       "relations": []

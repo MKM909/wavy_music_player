@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wavy_muic_player/animation_widget/edit_wiggle.dart';
 import 'package:wavy_muic_player/screens/music/playlist_viewing_page.dart';
 
 import '../../bottom_sheets/playlist_creation_sheet.dart';
@@ -12,7 +15,10 @@ import '../../services/playlist_service.dart';
 import '../../widgets/album_artwork.dart';
 
 class Playlists extends StatefulWidget {
-  const Playlists({super.key});
+
+  final bool edit;
+
+  const Playlists({super.key, required this.edit});
 
   @override
   State<Playlists> createState() => _PlaylistsState();
@@ -80,9 +86,9 @@ class _PlaylistsState extends State<Playlists> {
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF342E1B)),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Scanning for music files...',
-            style: TextStyle(
+          Text(
+            'Scanning for Playlists...',
+            style: GoogleFonts.rubik(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Color(0xFF342E1B),
@@ -119,29 +125,19 @@ class _PlaylistsState extends State<Playlists> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.music_off_rounded,
+              Icons.playlist_play_sharp,
               size: 64,
               color: Color(0xFF342E1B).withOpacity(0.5),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'No music found',
-              style: TextStyle(
+            Text(
+              'No Playlist found',
+              style: GoogleFonts.rubik(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF342E1B),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Add some music files to your device and refresh',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF342E1B).withOpacity(0.6),
-              ),
-            ),
-
             SizedBox(height: 20,),
 
             ClipRRect(
@@ -156,7 +152,7 @@ class _PlaylistsState extends State<Playlists> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     child: Center(
                       child: Text(
-                        'Add',
+                        'Add Playlist',
                         style: GoogleFonts.rubik(
                           fontSize: 16,
                           color: Colors.white,
@@ -174,6 +170,7 @@ class _PlaylistsState extends State<Playlists> {
       ),
     );
   }
+
 
   Widget _buildPlaylistCard(Playlist playlist) {
     return Consumer<MusicController>(
@@ -197,53 +194,96 @@ class _PlaylistsState extends State<Playlists> {
 
 
         return GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PlaylistViewingPage(),
-            ),
-          ),
-          child: ClipPath(
-            clipper: SquircleClipper(40),
-            child: SizedBox(
-              width: 150,
-              height: 150,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF605535),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          )
-                        ],
-                      ),
-                      child: songCount > 0 ? AlbumArtwork(
-                        song: firstSong,
-                        size: 150,
-                        backgroundColor: const Color(0xFF342E1B),
-                      ) : Icon(
-                        Icons.music_note_rounded,
-                        color: Colors.white,
-                        size: 50,
+          onTap: () {
+            if(widget.edit){
+              return;
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PlaylistViewingPage(playlist: playlist,),
+                ),
+              );
+            }
+          },
+          child: EditWiggle(
+            enabled: widget.edit,
+            child: ClipPath(
+              clipper: SquircleClipper(40),
+              child: SizedBox(
+                width: 150,
+                height: 150,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF605535),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            )
+                          ],
+                        ),
+                        child: songCount > 0 ? AlbumArtwork(
+                          song: firstSong,
+                          size: 150,
+                          backgroundColor: const Color(0xFF342E1B),
+                        ) : Icon(
+                          Icons.music_note_rounded,
+                          color: Colors.white,
+                          size: 50,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildPlaylistInfo(
-                      playlist.name,
-                      songCount,
-                      isPlayingFromPlaylist,
+
+                    !widget.edit ? Positioned.fill(child: Container(color: Colors.black.withValues(alpha: 0.15),)) : Container(),
+
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: _buildPlaylistInfo(
+                        playlist.name,
+                        songCount,
+                        isPlayingFromPlaylist,
+                      ),
                     ),
-                  )
-                ],
+
+                    widget.edit ? Positioned.fill(child: Container(color: Colors.black.withValues(alpha: 0.3),)) : Container(),
+
+                    widget.edit ? Positioned(
+                      top: 20,
+                      right: 20,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: (){ playlistService.deletePlaylist(playlist.id); },
+                                splashColor: Colors.brown.withValues(alpha: 0.2),
+                                highlightColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                child: SizedBox(
+                                  height: 30,
+                                  width: 30,
+                                  child: Icon(
+                                    Icons.cancel,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                ),
+                              ),
+                            )
+                        ),
+                      ),
+                    ) : Container(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -258,7 +298,7 @@ class _PlaylistsState extends State<Playlists> {
       bool isPlaying,
       ) {
     return Container(
-      height: 70,
+      height: 72,
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -266,7 +306,9 @@ class _PlaylistsState extends State<Playlists> {
           end: Alignment.bottomCenter,
           colors: [
             Color(0x00342E1B),
-            Color(0x80342E1B),
+            Color(0x3F342E1B),
+            Color(0x78342E1B),
+            Color(0xB3342E1B),
             Color(0xFF342E1B),
           ],
         ),
@@ -284,7 +326,7 @@ class _PlaylistsState extends State<Playlists> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.rubik(
-                    fontSize: 16,
+                    fontSize: 18,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
@@ -293,8 +335,9 @@ class _PlaylistsState extends State<Playlists> {
                 Text(
                   '$count songs',
                   style: GoogleFonts.rubik(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: Colors.white.withOpacity(0.6),
+                    fontWeight: FontWeight.w500
                   ),
                 ),
               ],
@@ -304,7 +347,7 @@ class _PlaylistsState extends State<Playlists> {
             const Icon(
               Icons.equalizer,
               color: Colors.green,
-              size: 16,
+              size: 18,
             ),
         ],
       ),

@@ -8,14 +8,16 @@ class AlbumArtwork extends StatefulWidget {
   final double size;
   final BorderRadius? borderRadius;
   final Color? backgroundColor;
+  final Color? nullIconColor;
 
   const AlbumArtwork({
-    Key? key,
+    super.key,
     required this.song,
     this.size = 50,
     this.borderRadius,
     this.backgroundColor,
-  }) : super(key: key);
+    this.nullIconColor = Colors.white,
+  });
 
   @override
   State<AlbumArtwork> createState() => _AlbumArtworkState();
@@ -105,9 +107,7 @@ class _AlbumArtworkState extends State<AlbumArtwork> {
   Widget _buildPlaceholder() {
     return Icon(
       Icons.music_note_rounded,
-      color: widget.backgroundColor != null
-          ? Colors.white.withOpacity(0.5)
-          : const Color(0xFFFFE695),
+      color: widget.nullIconColor!.withValues(alpha: 0.8),
       size: widget.size * 0.5,
     );
   }

@@ -62,7 +62,7 @@ class QueueEditorSheet extends StatelessWidget {
                   ),
                 ],
               )),
-              _buildBottom(musicController: controller),
+              _buildBottom(musicController: controller, context: context),
             ],
           ),
         );
@@ -193,137 +193,252 @@ class QueueEditorSheet extends StatelessWidget {
   Widget _header(BuildContext context, MusicController musicController) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Queue',
-                  style: GoogleFonts.rubik(
-                    color: const Color(0xFF342E1B),
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+          Row(
+            children: [
+              Text(
+                'Queue',
+                style: GoogleFonts.rubik(
+                  color: const Color(0xFF342E1B),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                SizedBox(height: 5,),
+              ),
+              Spacer(),
+              if (musicController.hasSleepTimer)
                 Text(
-                  'Currently : ${musicController.currentSong!.title}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.rubik(
-                    color: const Color(0xFF342E1B),
-                    fontSize: 16,
-                  ),
+                  'Stops in ${musicController.sleepDuration!.inMinutes} min',
+                  style: GoogleFonts.rubik(fontSize: 15, color: Colors.green, fontWeight: FontWeight.w500),
                 ),
-              ],
+            ],
+          ),
+          SizedBox(height: 5,),
+          Text(
+            'Currently : ${musicController.currentSong!.title}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.rubik(
+              color: const Color(0xFF342E1B),
+              fontSize: 16,
             ),
           ),
-          const SizedBox(width: 30,),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottom({required MusicController musicController, required BuildContext context}){
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20, left: 25, right: 25),
+      child: Row(
+        children: [
+          // Shuffle
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: (){
+                    musicController.toggleShuffle();
+                  },
+                  splashColor: Colors.white.withValues(alpha: 0.2),
+                  focusColor: Colors.white.withValues(alpha: 0.2),
+                  child: Container(
+                    height: 70,
+                    width: 150,
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Color(0xFF342E1B).withValues(alpha: 0.95),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.shuffle_sharp,
+                          color: musicController.isShuffleOn ? Colors.orange : Colors.white,
+                          size: 30,
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          'Shuffle',
+                          style: GoogleFonts.rubik(
+                            color: musicController.isShuffleOn ? Colors.orange : Colors.white,
+                            fontSize: 14,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 10,),
+          // Repeat
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: (){
+                    musicController.toggleRepeatMode();
+                  },
+                  splashColor: Colors.white.withValues(alpha: 0.2),
+                  focusColor: Colors.white.withValues(alpha: 0.2),
+                  child: Container(
+                    height: 70,
+                    width: 150,
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Color(0xFF342E1B).withValues(alpha: 0.95),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          musicController.repeatMode == RepeatMode.off ? Icons.repeat : (musicController.repeatMode == RepeatMode.all ? Icons.repeat_sharp: Icons.repeat_one),
+                          color: musicController.repeatMode != RepeatMode.off ? Colors.orange : Colors.white,
+                          size: 30,
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          'Repeat',
+                          style: GoogleFonts.rubik(
+                            color: musicController.repeatMode != RepeatMode.off ? Colors.orange : Colors.white,
+                            fontSize: 14,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 10,),
+          // Timer
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    if(musicController.hasSleepTimer){
+                      musicController.cancelSleepTimer();
+                    } else {
+                      _showSleepTimerSheet(context);
+                    }
+                  },
+                  child: Container(
+                    height: 70,
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Color(0xFF342E1B).withValues(alpha: 0.95),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.timer_sharp, color: musicController.hasSleepTimer ? Colors.orange : Colors.white, size: 30),
+                        SizedBox(height: 3),
+                        Text('Timer', style: GoogleFonts.rubik(color: musicController.hasSleepTimer ? Colors.orange : Colors.white)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBottom({required MusicController musicController}){
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10, left: 25, right: 25),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 70,
-              width: 150,
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Color(0xFF342E1B).withValues(alpha: 0.95),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+  void _showSleepTimerSheet(BuildContext context) {
+    final controller = context.read<MusicController>();
+
+    Widget handle() {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Container(
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Color(0xFF342E1B),
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Color(0xFFFFE695),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => Container(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            handle(),
+            SizedBox(height: 5,),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
                 children: [
-                  Icon(
-                    Icons.shuffle_sharp,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  SizedBox(height: 3),
                   Text(
-                    'Shuffle',
+                    'Pick a duration',
                     style: GoogleFonts.rubik(
-                      color: Colors.white,
-                      fontSize: 14,
+                      fontSize: 24,
+                      color: Color(0xFF342E1B),
+                      fontWeight: FontWeight.w500
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
-          ),
-          SizedBox(width: 10,),
-          Expanded(
-            child: Container(
-              height: 70,
-              width: 150,
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Color(0xFF342E1B).withValues(alpha: 0.95),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.repeat_sharp,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    'Repeat',
-                    style: GoogleFonts.rubik(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-          SizedBox(width: 10,),
-          Expanded(
-            child: Container(
-              height: 70,
-              width: 150,
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Color(0xFF342E1B).withValues(alpha: 0.95),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.timer_sharp,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    'Timer',
-                    style: GoogleFonts.rubik(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
+            SizedBox(height: 5,),
+            _timerOption(context, '1 minute', Duration(minutes: 1)),
+            _timerOption(context, '5 minutes', Duration(minutes: 5)),
+            _timerOption(context, '15 minutes', Duration(minutes: 15)),
+            _timerOption(context, '30 minutes', Duration(minutes: 30)),
+            _timerOption(context, '45 minutes', Duration(minutes: 45)),
+            _timerOption(context, '1 hour', Duration(hours: 1)),
+
+            if (controller.hasSleepTimer)
+              _timerOption(context, 'Cancel timer', null),
+            SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _timerOption(BuildContext context, String label, Duration? duration) {
+    final controller = context.read<MusicController>();
+
+    return ListTile(
+      title: Text(label, style: GoogleFonts.rubik(fontSize: 18, color: Color(0xFF342E1B))),
+      onTap: () {
+        Navigator.pop(context);
+        duration == null
+            ? controller.cancelSleepTimer()
+            : controller.startSleepTimer(duration);
+      },
+    );
+  }
+
 
 }
 
@@ -489,4 +604,5 @@ class _QueueList extends StatelessWidget {
   }
 
 }
+
 

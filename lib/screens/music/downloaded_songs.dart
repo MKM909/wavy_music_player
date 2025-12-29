@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:wavy_muic_player/items_layout/playlist_item_layout.dart';
+import 'package:wavy_muic_player/bottom_sheets/add_to_playlist_sheet.dart';
 
 import '../../clippers/squircle_clipper.dart';
 import '../../controllers/music_controller.dart';
@@ -121,10 +121,10 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF342E1B)),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Scanning for music files...',
-            style: TextStyle(
-              fontSize: 16,
+            style: GoogleFonts.rubik(
+              fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xFF342E1B),
             ),
@@ -134,8 +134,8 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Checking $scanProgress of $scanTotal locations',
-                style: TextStyle(
-                  fontSize: 14,
+                style: GoogleFonts.rubik(
+                  fontSize: 16,
                   color: Color(0xFF342E1B).withOpacity(0.6),
                 ),
               ),
@@ -161,7 +161,7 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
             Text(
               errorMessage!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: GoogleFonts.rubik(
                 fontSize: 16,
                 color: Color(0xFF342E1B),
               ),
@@ -173,9 +173,12 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                 backgroundColor: const Color(0xFF342E1B),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
-              child: const Text(
+              child: Text(
                 'Try Again',
-                style: TextStyle(color: Color(0xFFFFE695)),
+                style: GoogleFonts.rubik(
+                  fontSize: 16,
+                  color: Color(0xFFFFE695)
+                ),
               ),
             ),
           ],
@@ -223,7 +226,7 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
   Widget _buildSongList() {
     return ListView.builder(
       itemCount: songs.length,
-      padding: EdgeInsets.only(left: 10, right: 10),
+      padding: EdgeInsets.only(left: 10, right: 10, bottom: 160),
       itemBuilder: (context, index) {
         final song = songs[index];
         return _buildSongTile(
@@ -322,7 +325,6 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                         ),
 
                         SizedBox(width: 15,),
-
                         ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: BackdropFilter(
@@ -351,6 +353,34 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                                   ),
                                   child: Icon(
                                     isCurrentSong ? (isActuallyPlaying ? Icons.pause : Icons.play_arrow) : Icons.play_arrow_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 5,),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  AddToPlaylistSheet.show(context, song: song);
+                                },
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF342E1B).withValues(alpha: 0.5),
+                                  ),
+                                  child: Icon(
+                                    Icons.playlist_add,
                                     color: Colors.white,
                                     size: 20,
                                   ),

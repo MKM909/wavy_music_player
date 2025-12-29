@@ -10,6 +10,7 @@ import '../painters/softwave_painter.dart';
 import '../services/liked_song_service.dart';
 import '../widgets/album_artwork.dart';
 import '../widgets/waveform_slidder.dart';
+import 'add_to_playlist_sheet.dart';
 
 class MusicPlayerSheet extends StatefulWidget {
   const MusicPlayerSheet({Key? key}) : super(key: key);
@@ -89,7 +90,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                 padding: EdgeInsets.only(top: 5),
                 margin: EdgeInsets.only(top: 25),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFD8C98A),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40),
                     topRight: Radius.circular(40),
@@ -133,7 +134,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                             width: 40,
                             height: 5,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF342E1B).withOpacity(0.3),
+                              color: const Color(0xFF342E1B).withOpacity(0.5),
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
@@ -168,9 +169,23 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
+                                        InkWell(
+                                          onTap: () {
+                                            AddToPlaylistSheet.show(
+                                              context,
+                                              song: musicController.currentSong!,
+                                            );
+                                          },
+                                          child: Icon(
+                                            Icons.playlist_add_rounded,
+                                            color: const Color(0xFF342E1B),
+                                            size: 30,
+                                          ),
+                                        ),
+                                        Spacer(),
                                         InkWell(
                                           onTap: (){
                                             musicController.showQueueEditor(context);
@@ -183,7 +198,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 5,),
+                                    SizedBox(height: 8,),
                                     // Progress Bar
                                     _buildProgressBar(musicController),
                                     const SizedBox(height: 32),

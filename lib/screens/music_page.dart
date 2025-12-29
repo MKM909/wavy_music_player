@@ -21,20 +21,14 @@ class MusicPage extends StatefulWidget {
 
 class _MusicPageState extends State<MusicPage> {
 
+  bool edit = false;
+
   List<MusicTabs> musicTabs = [
     MusicTabs(title: 'Downloaded Songs',),
     MusicTabs(title: 'Playlists',),
     MusicTabs(title: 'Liked Songs',),
     MusicTabs(title: 'Albums',),
     MusicTabs(title: 'Artists',),
-  ];
-
-  List<Widget> tabs = [
-    DownloadedSongs(),
-    Playlists(),
-    LikedSongsScreen(),
-    Container(),
-    Container(),
   ];
 
   int _currentPage = 0;
@@ -87,6 +81,15 @@ class _MusicPageState extends State<MusicPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    late List<Widget> tabs = [
+      DownloadedSongs(),
+      Playlists(edit: edit,),
+      LikedSongsScreen(),
+      Container(),
+      Container(),
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFE695),
       body: Padding(
@@ -137,6 +140,41 @@ class _MusicPageState extends State<MusicPage> {
         ),
         Spacer(),
         _currentPage == 1
+            ? ClipRRect(
+          borderRadius: BorderRadius.circular(100),
+          child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: (){ setState(() {
+                    edit = !edit;
+                  }); },
+                  splashColor: Colors.brown.withValues(alpha: 0.2),
+                  highlightColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF342E1B).withValues(alpha: 0.35),
+                    ),
+                    child: Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              )
+          ),
+        )
+            : Container(),
+        SizedBox(width: 10,),
+
+        _currentPage == 1
           ? ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: BackdropFilter(
@@ -157,7 +195,7 @@ class _MusicPageState extends State<MusicPage> {
                         color: Color(0xFF342E1B).withValues(alpha: 0.35),
                       ),
                       child: Icon(
-                        CupertinoIcons.add_circled,
+                        CupertinoIcons.add,
                         color: Colors.white,
                         size: 20,
                       ),

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../bottom_sheets/add_to_playlist_sheet.dart';
 import '../../clippers/squircle_clipper.dart';
 import '../../controllers/music_controller.dart';
 import '../../model/liked_songs.dart';
@@ -52,7 +53,7 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
         }
 
         return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: 160),
           itemCount: songs.length,
           itemBuilder: (context, index) {
             final likedSong = songs[index];
@@ -89,10 +90,10 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF342E1B)),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Scanning for music files...',
-            style: TextStyle(
-              fontSize: 16,
+            style: GoogleFonts.rubik(
+              fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xFF342E1B),
             ),
@@ -128,25 +129,25 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.music_off_rounded,
+              Icons.heart_broken_rounded,
               size: 64,
               color: Color(0xFF342E1B).withOpacity(0.5),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No music found',
-              style: TextStyle(
-                fontSize: 20,
+              style: GoogleFonts.rubik(
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF342E1B),
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Add some music files to your device and refresh',
+              'Like some songs and refresh',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
+              style: GoogleFonts.rubik(
+                fontSize: 16,
                 color: Color(0xFF342E1B).withOpacity(0.6),
               ),
             ),
@@ -310,6 +311,34 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
                                         isCurrentSong ? (isActuallyPlaying ? Icons
                                             .pause : Icons.play_arrow) : Icons
                                             .play_arrow_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 5,),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(100),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      AddToPlaylistSheet.show(context, song: song);
+                                    },
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFF342E1B).withValues(alpha: 0.5),
+                                      ),
+                                      child: Icon(
+                                        Icons.playlist_add,
                                         color: Colors.white,
                                         size: 20,
                                       ),

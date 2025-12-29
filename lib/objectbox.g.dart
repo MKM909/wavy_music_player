@@ -88,7 +88,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(3, 141093537709303771),
       name: 'PlaylistSong',
-      lastPropertyId: const obx_int.IdUid(6, 4528598348219360402),
+      lastPropertyId: const obx_int.IdUid(7, 8164021208804157999),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -115,6 +115,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(6, 4528598348219360402),
             name: 'playlistId',
             type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 8164021208804157999),
+            name: 'fileName',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -259,12 +264,14 @@ obx_int.ModelDefinition getObjectBoxModel() {
         objectToFB: (PlaylistSong object, fb.Builder fbb) {
           final filePathOffset = fbb.writeString(object.filePath);
           final titleOffset = fbb.writeString(object.title);
-          fbb.startTable(7);
+          final fileNameOffset = fbb.writeString(object.fileName);
+          fbb.startTable(8);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, filePathOffset);
           fbb.addOffset(2, titleOffset);
           fbb.addInt64(4, object.fileSize);
           fbb.addInt64(5, object.playlistId);
+          fbb.addOffset(6, fileNameOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -278,12 +285,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final titleParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 8, '');
           final fileSizeParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 12);
+          final fileNameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 16, '');
           final object = PlaylistSong(
               playlistId: playlistIdParam,
               filePath: filePathParam,
               title: titleParam,
-              fileSize: fileSizeParam)
+              fileSize: fileSizeParam,
+              fileName: fileNameParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
@@ -356,4 +366,8 @@ class PlaylistSong_ {
   /// see [PlaylistSong.playlistId]
   static final playlistId =
       obx.QueryIntegerProperty<PlaylistSong>(_entities[2].properties[4]);
+
+  /// see [PlaylistSong.fileName]
+  static final fileName =
+      obx.QueryStringProperty<PlaylistSong>(_entities[2].properties[5]);
 }

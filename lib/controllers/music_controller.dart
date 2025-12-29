@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
@@ -33,6 +35,13 @@ class MusicController extends ChangeNotifier {
   List<Song> _queue = [];
   List<Song> _originalQueue = []; // For shuffle
   int _currentIndex = 0;
+
+  Timer? _sleepTimer;
+  Duration? _sleepDuration;
+
+  Duration? get sleepDuration => _sleepDuration;
+  bool get hasSleepTimer => _sleepTimer != null;
+
 
   // Getters
   Song? get currentSong => _currentSong;
@@ -135,6 +144,8 @@ class MusicController extends ChangeNotifier {
 
 
   Future<void> stop() async {
+    _sleepTimer?.cancel();
+    _clearSleepTimer();
     await _audioPlayer.stop();
     _playbackState = PlaybackState.stopped;
     _currentPosition = Duration.zero;
@@ -325,5 +336,60 @@ class MusicController extends ChangeNotifier {
       builder: (_) => const QueueEditorSheet(),
     );
   }
+
+
+  Future<void> playPlaylist({
+    required List<Song> songs,
+    int startIndex = 0,
+  }) async {
+    if (songs.isEmpty) return;
+
+    _playbackState = PlaybackState.loading;
+
+    _queue = List.from(songs);
+    _originalQueue = List.from(songs);
+    _currentIndex = startIndex.clamp(0, songs.length - 1);
+
+    final songToPlay = _queue[_currentIndex];
+    _currentSong = songToPlay;
+
+    notifyListeners();
+
+    try {
+      await _audioPlayer.setFilePath(songToPlay.filePath);
+      await _audioPlayer.play();
+      _playbackState = PlaybackState.playing;
+    } catch (e) {
+      debugPrint('Error playing playlist: $e');
+      _playbackState = PlaybackState.stopped;
+    }
+
+    notifyListeners();
+  }
+
+  void startSleepTimer(Duration duration) {
+    _sleepTimer?.cancel();
+
+    _sleepDuration = duration;
+    notifyListeners();
+
+    _sleepTimer = Timer(duration, () async {
+      await stop();
+      _clearSleepTimer();
+    });
+  }
+
+  void cancelSleepTimer() {
+    _sleepTimer?.cancel();
+    _clearSleepTimer();
+  }
+
+  void _clearSleepTimer() {
+    _sleepTimer = null;
+    _sleepDuration = null;
+    notifyListeners();
+  }
+
+
 
 }
