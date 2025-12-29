@@ -41,17 +41,79 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:3369048486088346809",
+      "lastPropertyId": "3:5154906727081137893",
+      "name": "Playlist",
+      "properties": [
+        {
+          "id": "1:8601154770813198490",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4928344850893639172",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:5154906727081137893",
+          "name": "createdAt",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:141093537709303771",
+      "lastPropertyId": "6:4528598348219360402",
+      "name": "PlaylistSong",
+      "properties": [
+        {
+          "id": "1:7623383502828935413",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3231737811968147922",
+          "name": "filePath",
+          "type": 9
+        },
+        {
+          "id": "3:5727748529297938801",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "5:8236736392536814231",
+          "name": "fileSize",
+          "type": 6
+        },
+        {
+          "id": "6:4528598348219360402",
+          "name": "playlistId",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:721369586500848292",
-  "lastIndexId": "0:0",
+  "lastEntityId": "3:141093537709303771",
+  "lastIndexId": "1:8374416011704636333",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
-  "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredIndexUids": [
+    8374416011704636333
+  ],
+  "retiredPropertyUids": [
+    6985618918198216649
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

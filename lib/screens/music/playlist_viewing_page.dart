@@ -7,7 +7,6 @@ import 'package:wavy_muic_player/widgets/mini_player.dart';
 
 import '../../bottom_sheets/music_player_sheet.dart';
 import '../../clippers/squircle_clipper.dart';
-import '../../painters/mio_background_painter.dart';
 import '../../widgets/continous_wave.dart';
 
 class PlaylistViewingPage extends StatefulWidget {

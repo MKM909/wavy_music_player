@@ -7,10 +7,6 @@ import 'package:wavy_muic_player/screens/profile_page.dart';
 import 'package:wavy_muic_player/screens/search_page.dart';
 import 'package:wavy_muic_player/widgets/mini_player.dart';
 
-import '../bottom_sheets/music_player_sheet.dart';
-import '../clippers/squircle_clipper.dart';
-import '../widgets/wavy_navigation_bar.dart';
-
 // Demo usage matching the design
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -22,7 +18,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   int _currentPage = 0;
   late PageController _pageController;
-  late AnimationController _vinylController;
   bool isLiked = false;
   GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
 
@@ -37,16 +32,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentPage);
-    _vinylController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _vinylController.dispose();
     super.dispose();
   }
 
@@ -121,10 +111,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             child: CurvedNavigationBar(
               key: _bottomNavigationKey, // 👈 Key for programmatic control
               items: <Widget>[
-                Icon(Icons.home_rounded, size: 30, color: Colors.white),
-                Icon(Icons.music_note_rounded, size: 30, color: Colors.white),
-                Icon(Icons.search_rounded, size: 30, color: Colors.white),
-                Icon(Icons.person_rounded, size: 30, color: Colors.white),
+                Icon(Icons.home_sharp, size: 30, color: Colors.white),
+                Icon(Icons.my_library_music_sharp, size: 30, color: Colors.white),
+                Icon(Icons.search_sharp, size: 30, color: Colors.white),
+                Icon(Icons.person_sharp, size: 30, color: Colors.white),
               ],
               index: _currentPage,
               backgroundColor: Colors.transparent,

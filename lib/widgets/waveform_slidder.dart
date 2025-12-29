@@ -154,13 +154,6 @@ class WaveformPainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
       ..strokeCap = StrokeCap.round;
 
-    // Rounded capsule clip
-    final bg = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(0),
-    );
-    canvas.clipRRect(bg);
-
     for (int i = 0; i < barCount; i++) {
       final x = spacing * i + spacing / 2;
       final barHeight = size.height * _heights[i];

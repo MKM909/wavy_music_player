@@ -16,6 +16,8 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'model/liked_songs.dart';
+import 'model/playlist.dart';
+import 'model/playlist_song.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -58,6 +60,64 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(2, 3369048486088346809),
+      name: 'Playlist',
+      lastPropertyId: const obx_int.IdUid(3, 5154906727081137893),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 8601154770813198490),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 4928344850893639172),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 5154906727081137893),
+            name: 'createdAt',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(3, 141093537709303771),
+      name: 'PlaylistSong',
+      lastPropertyId: const obx_int.IdUid(6, 4528598348219360402),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 7623383502828935413),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 3231737811968147922),
+            name: 'filePath',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 5727748529297938801),
+            name: 'title',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 8236736392536814231),
+            name: 'fileSize',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 4528598348219360402),
+            name: 'playlistId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -96,13 +156,13 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(1, 721369586500848292),
-      lastIndexId: const obx_int.IdUid(0, 0),
+      lastEntityId: const obx_int.IdUid(3, 141093537709303771),
+      lastIndexId: const obx_int.IdUid(1, 8374416011704636333),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
-      retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredIndexUids: const [8374416011704636333],
+      retiredPropertyUids: const [6985618918198216649],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -158,6 +218,75 @@ obx_int.ModelDefinition getObjectBoxModel() {
               fileSize: fileSizeParam);
 
           return object;
+        }),
+    Playlist: obx_int.EntityDefinition<Playlist>(
+        model: _entities[1],
+        toOneRelations: (Playlist object) => [],
+        toManyRelations: (Playlist object) => {},
+        getId: (Playlist object) => object.id,
+        setId: (Playlist object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Playlist object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          fbb.startTable(4);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addInt64(2, object.createdAt);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final createdAtParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
+          final object = Playlist(name: nameParam, createdAt: createdAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
+        }),
+    PlaylistSong: obx_int.EntityDefinition<PlaylistSong>(
+        model: _entities[2],
+        toOneRelations: (PlaylistSong object) => [],
+        toManyRelations: (PlaylistSong object) => {},
+        getId: (PlaylistSong object) => object.id,
+        setId: (PlaylistSong object, int id) {
+          object.id = id;
+        },
+        objectToFB: (PlaylistSong object, fb.Builder fbb) {
+          final filePathOffset = fbb.writeString(object.filePath);
+          final titleOffset = fbb.writeString(object.title);
+          fbb.startTable(7);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, filePathOffset);
+          fbb.addOffset(2, titleOffset);
+          fbb.addInt64(4, object.fileSize);
+          fbb.addInt64(5, object.playlistId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final playlistIdParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
+          final filePathParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final titleParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final fileSizeParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
+          final object = PlaylistSong(
+              playlistId: playlistIdParam,
+              filePath: filePathParam,
+              title: titleParam,
+              fileSize: fileSizeParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
         })
   };
 
@@ -189,4 +318,42 @@ class LikedSong_ {
   /// see [LikedSong.fileSize]
   static final fileSize =
       obx.QueryIntegerProperty<LikedSong>(_entities[0].properties[5]);
+}
+
+/// [Playlist] entity fields to define ObjectBox queries.
+class Playlist_ {
+  /// see [Playlist.id]
+  static final id =
+      obx.QueryIntegerProperty<Playlist>(_entities[1].properties[0]);
+
+  /// see [Playlist.name]
+  static final name =
+      obx.QueryStringProperty<Playlist>(_entities[1].properties[1]);
+
+  /// see [Playlist.createdAt]
+  static final createdAt =
+      obx.QueryIntegerProperty<Playlist>(_entities[1].properties[2]);
+}
+
+/// [PlaylistSong] entity fields to define ObjectBox queries.
+class PlaylistSong_ {
+  /// see [PlaylistSong.id]
+  static final id =
+      obx.QueryIntegerProperty<PlaylistSong>(_entities[2].properties[0]);
+
+  /// see [PlaylistSong.filePath]
+  static final filePath =
+      obx.QueryStringProperty<PlaylistSong>(_entities[2].properties[1]);
+
+  /// see [PlaylistSong.title]
+  static final title =
+      obx.QueryStringProperty<PlaylistSong>(_entities[2].properties[2]);
+
+  /// see [PlaylistSong.fileSize]
+  static final fileSize =
+      obx.QueryIntegerProperty<PlaylistSong>(_entities[2].properties[3]);
+
+  /// see [PlaylistSong.playlistId]
+  static final playlistId =
+      obx.QueryIntegerProperty<PlaylistSong>(_entities[2].properties[4]);
 }

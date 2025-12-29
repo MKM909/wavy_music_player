@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import '../bottom_sheets/queue_editor_sheet.dart';
 import '../model/song.dart';
 import '../services/music_library_service.dart';
 
@@ -313,4 +315,15 @@ class MusicController extends ChangeNotifier {
     _audioPlayer.dispose();
     super.dispose();
   }
+
+
+  void showQueueEditor(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const QueueEditorSheet(),
+    );
+  }
+
 }

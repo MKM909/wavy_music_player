@@ -68,11 +68,6 @@ class WavePainter extends CustomPainter {
     final paint = Paint()..color = color;
     final path = Path();
 
-    // 1. Draw the background circle (optional border)
-    final backgroundPaint = Paint()
-      ..color = color.withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
 
     // 3. Calculate Wave Height (0.0 progress = bottom, 1.0 = top)
     double waveHeight = (1 - progress) * size.height;

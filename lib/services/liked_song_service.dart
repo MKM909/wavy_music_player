@@ -2,7 +2,6 @@ import 'package:objectbox/objectbox.dart';
 import '../model/liked_songs.dart';
 import '../model/song.dart';
 import '../objectbox.g.dart';
-import 'object_box_service.dart';
 
 class LikedSongsService {
   static final LikedSongsService _instance = LikedSongsService._internal();
@@ -12,10 +11,7 @@ class LikedSongsService {
   factory LikedSongsService() => _instance;
   LikedSongsService._internal();
 
-  Future<void> init() async {
-    if (_box != null) return;
-
-    final store = ObjectBoxService().store;
+  void init(Store store) {
     _box = store.box<LikedSong>();
   }
 

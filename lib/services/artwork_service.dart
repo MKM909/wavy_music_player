@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:io';
 import 'package:audiotags/audiotags.dart';
 
 class ArtworkService {

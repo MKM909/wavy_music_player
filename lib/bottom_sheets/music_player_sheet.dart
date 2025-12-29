@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +8,6 @@ import '../model/song.dart';
 import '../painters/offset_squircle_background.dart';
 import '../painters/softwave_painter.dart';
 import '../services/liked_song_service.dart';
-import '../services/music_library_service.dart';
 import '../widgets/album_artwork.dart';
 import '../widgets/waveform_slidder.dart';
 
@@ -169,6 +167,23 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                                 padding: const EdgeInsets.only(left: 30 , right : 30.0),
                                 child: Column(
                                   children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        InkWell(
+                                          onTap: (){
+                                            musicController.showQueueEditor(context);
+                                          },
+                                          child: Icon(
+                                            Icons.queue_music_sharp,
+                                            color: Color(0xFF342E1B),
+                                            size: 28,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 5,),
                                     // Progress Bar
                                     _buildProgressBar(musicController),
                                     const SizedBox(height: 32),
@@ -251,24 +266,24 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
   Widget _buildAlbumCard(MusicController musicController) {
     if(musicController.currentSong?.albumArt != null){
       return SizedBox(
-        height: 320,
+        height: 300,
         width: double.infinity,
         child: Stack(
           children: [
             // Vinyl Record
             Positioned(
-              top: 0,
+              top: 10,
               right: 10,
-              bottom: 0,
+              bottom: 10,
               child: RotationTransition(
                 turns: _vinylController,
                 child: Container(
-                  width: 320,
-                  height: 320,
+                  width: 300,
+                  height: 300,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFF342E1B), Colors.grey.shade700,],
+                      colors: [Color(0xFF342E1B), Colors.brown.shade500,],
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -282,8 +297,8 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                     children: [
                       Center(
                         child: Container(
-                          width: 280,
-                          height: 280,
+                          width: 250,
+                          height: 250,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
@@ -295,8 +310,8 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                       ),
                       Center(
                         child: Container(
-                          width: 240,
-                          height: 240,
+                          width: 210,
+                          height: 210,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
@@ -323,9 +338,9 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
             ),
             Positioned(
               top: 0,
-              right: 60,
+              right: 80,
               bottom: 0,
-              left: 20,
+              left: 30,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: Container(
@@ -338,7 +353,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
                       BoxShadow(
                         color: Colors.black.withOpacity(0.15),
                         blurRadius: 30,
-                        offset: const Offset(0, 10),
+                        offset: const Offset(-10, 10),
                       ),
                     ],
                   ),
@@ -533,7 +548,7 @@ class _MusicPlayerSheetState extends State<MusicPlayerSheet>
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Column(
           children: [

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wavy_muic_player/painters/mio_background_painter.dart';
-import '../painters/wavy_nav_painter.dart';
 
 class WavyMusicNavBar extends StatefulWidget {
   final List<IconData> icons;
@@ -89,8 +88,6 @@ class _WavyMusicNavBarState extends State<WavyMusicNavBar>
         0.25 * Curves.elasticOut.transform((t - 0.9) / 0.1);
   }
 
-  double _iconScale() => 1.0 - (t - 0.5).abs() * 0.3;
-  double _iconOpacity() => t < 0.5 ? 1 - t * 2 : (t - 0.5) * 2;
 
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../bottom_sheets/add_to_playlist_sheet.dart';
 import '../bottom_sheets/music_player_sheet.dart';
 import '../clippers/squircle_clipper.dart';
 import '../controllers/music_controller.dart';
@@ -94,8 +95,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             },
 
             child: Container(
-              height: 75,
-              margin: EdgeInsets.symmetric(horizontal: 20),
+              margin: EdgeInsets.symmetric(horizontal: 10),
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [Color(0xFFFFE695),Color(0xFFFBBF24),]),
@@ -113,25 +113,25 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                 child: Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                       child: Row(
                         children: [
                           ClipPath(
-                            clipper: SquircleClipper(20),
+                            clipper: SquircleClipper(12),
                             child: Container(
-                              width: 50,
-                              height: 50,
+                              width: 40,
+                              height: 40,
                               color: Color(0xFF342E1B),
                               child: AlbumArtwork(
                                 song: currentSong,
-                                size: 45,
+                                size: 40,
                                 borderRadius: BorderRadius.circular(8),
                                 backgroundColor: const Color(0xFF342E1B),
                               ),
                             ),
                           ),
 
-                          SizedBox(width: 15,),
+                          SizedBox(width: 10,),
 
                           Expanded(
                             child: Column(
@@ -141,8 +141,9 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                                 Text(
                                   controller.currentSong!.title,
                                   overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                   style: GoogleFonts.rubik(
-                                    fontSize: 18,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                     color: Color(0xFF342E1B),
                                   ),
@@ -150,8 +151,10 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                                 SizedBox(height: 5,),
                                 Text(
                                   controller.currentSong!.artist,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                   style: GoogleFonts.rubik(
-                                    fontSize: 14,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                     color: Color(0xFF342E1B),
                                   ),
@@ -163,15 +166,20 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                           SizedBox(width: 10,),
 
                           InkWell(
-                            onTap: (){
-                              controller.toggleShuffle();
+                            onTap: () {
+                              AddToPlaylistSheet.show(
+                                context,
+                                song: controller.currentSong!,
+                              );
                             },
                             child: Icon(
-                              Icons.shuffle,
-                              color: controller.isShuffleOn ? Color(0xFF342E1B) :const Color(0xFF342E1B).withOpacity(0.4),
-                              size: 28,
+                              Icons.playlist_add_rounded,
+                              color: const Color(0xFF342E1B),
+                              size: 26,
                             ),
                           ),
+
+
                           SizedBox(width: 8),
 
                           StreamBuilder<bool>(
@@ -201,7 +209,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                                   color: isLiked
                                       ? Colors.red
                                       : const Color(0xFF342E1B).withOpacity(0.4),
-                                  size: 28,
+                                  size: 25,
                                 ),
                               );
                             },
@@ -209,14 +217,14 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
 
 
 
-                          SizedBox(width: 8),
+                          SizedBox(width: 10),
 
                           GestureDetector(
                             onTap: () => controller.togglePlayPause(),
                             child: RotationTransition(
                               turns: _vinylController,
                               child: Container(
-                                width: 50,
+                                width: 40,
                                 height: 50,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
@@ -235,21 +243,8 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                                   children: [
                                     Center(
                                       child: Container(
-                                        width: 35,
-                                        height: 35,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(0.1),
-                                            width: 2,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Center(
-                                      child: Container(
-                                        width: 30,
-                                        height: 30,
+                                        width: 25,
+                                        height: 25,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
@@ -263,6 +258,19 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                                       child: Container(
                                         width: 25,
                                         height: 25,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.1),
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Center(
+                                      child: Container(
+                                        width: 20,
+                                        height: 20,
                                         decoration: const BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: Color(0xFFFDE68A),
@@ -270,7 +278,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                                         child: Center(
                                           child: Icon( controller.isPlaying
                                               ? Icons.pause_rounded
-                                              : Icons.play_arrow_rounded, size: 20, color: Colors.black,),
+                                              : Icons.play_arrow_rounded, size: 16, color: Colors.black,),
                                         ),
                                       ),
                                     ),
@@ -284,7 +292,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                       ),
                     ),
                     LinearProgressIndicator(
-                      minHeight: 5,
+                      minHeight: 3,
                       value: controller.progress,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Color(0xFF342E1B),
