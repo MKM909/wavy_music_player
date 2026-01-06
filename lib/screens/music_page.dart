@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wavy_muic_player/bottom_sheets/playlist_creation_sheet.dart';
+import 'package:wavy_muic_player/screens/music/albums.dart';
 import 'package:wavy_muic_player/screens/music/playlists.dart';
 
 import '../model/music_tabs.dart';
@@ -87,7 +88,7 @@ class _MusicPageState extends State<MusicPage> {
       DownloadedSongs(),
       Playlists(edit: edit,),
       LikedSongsScreen(),
-      Container(),
+      Albums(edit: edit),
       Container(),
     ];
 
@@ -162,7 +163,7 @@ class _MusicPageState extends State<MusicPage> {
         ),
         Spacer(),
         _fadeAction(
-          visible: _currentPage == 1,
+          visible: _currentPage == 1 || _currentPage == 3,
           child: ClipRRect(
             key: const ValueKey('edit'),
             borderRadius: BorderRadius.circular(100),

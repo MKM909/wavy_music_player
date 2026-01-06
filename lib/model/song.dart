@@ -1,17 +1,14 @@
 import 'dart:typed_data';
 
-// Simple models for our music data
-
-// ============================================================================
-// FILE 1: lib/services/music_library_service.dart
-// ============================================================================
-
 class Song {
   final String filePath;
   final String title;
   final String fileName;
   final int? fileSize;
-  Uint8List? albumArt; // Add this field for artwork
+  Uint8List? albumArt;
+
+  final String album;
+  final String artist;
 
   Song({
     required this.filePath,
@@ -19,17 +16,18 @@ class Song {
     required this.fileName,
     this.fileSize,
     this.albumArt,
+    this.album = 'Unknown Album',
+    this.artist = 'Unknown Artist',
   });
 
-  String get artist => 'Unknown Artist';
-  String get album => 'Unknown Album';
 
   Map<String, dynamic> toJson() => {
     'filePath': filePath,
     'title': title,
     'fileName': fileName,
     'fileSize': fileSize,
-    // Don't cache artwork in JSON (too large)
+    'album': album,
+    'artist': artist,
   };
 
   factory Song.fromJson(Map<String, dynamic> json) => Song(
@@ -37,6 +35,8 @@ class Song {
     title: json['title'],
     fileName: json['fileName'],
     fileSize: json['fileSize'],
+    album: json['album'],
+    artist: json['artist'],
   );
 
 

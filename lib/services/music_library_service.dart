@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data';
 
+import '../model/album.dart';
 import '../model/song.dart';
 
 class MusicLibraryService {
@@ -143,6 +144,8 @@ class MusicLibraryService {
           try {
             final stats = await entity.stat();
             Uint8List? artwork;
+            String? album;
+            String? artist;
 
             try {
               final metadata = readMetadata(
@@ -153,6 +156,10 @@ class MusicLibraryService {
               if (metadata.pictures.isNotEmpty) {
                 artwork = metadata.pictures.first.bytes;
               }
+
+              album = metadata.album?.trim();
+              artist = metadata.artist?.trim();
+
             } catch (_) {
               artwork = null;
             }
@@ -163,6 +170,8 @@ class MusicLibraryService {
                 title: _getFileNameWithoutExtension(entity.path),
                 fileName: entity.path.split('/').last,
                 fileSize: stats.size,
+                album: album ?? 'Unknown Album',
+                artist: artist ?? 'Unknown Artist',
               ),
             );
           } catch (e) {
@@ -235,156 +244,41 @@ class MusicLibraryService {
         song.fileName.toLowerCase().contains(lowerQuery)
     ).toList();
   }
-}
-// ============================================================================
-// OPTIMIZED USAGE EXAMPLE
-// ============================================================================
 
-/*
-class MusicLibraryExample extends StatefulWidget {
-  @override
-  _MusicLibraryExampleState createState() => _MusicLibraryExampleState();
-}
+  Map<String, Album> categorizeByAlbum(List<Song> songs) {
+    final Map<String, Album> albums = {};
 
-class _MusicLibraryExampleState extends State<MusicLibraryExample> {
-  final MusicLibraryService _musicService = MusicLibraryService();
-  List<Song> songs = [];
-  bool isLoading = false;
-  bool isScanning = false;
-  int scanProgress = 0;
-  int scanTotal = 0;
-  String? errorMessage;
+    for (final song in songs) {
+      final albumName = song.album ?? 'Unknown Album';
+      final artistName = song.artist ?? 'Unknown Artist';
 
-  @override
-  void initState() {
-    super.initState();
-    _loadMusicFast();
-  }
+      final albumKey = '$albumName|$artistName';
 
-  // FAST INITIAL LOAD - Show cached data immediately
-  Future<void> _loadMusicFast() async {
-    // Try to get cached data first (instant!)
-    final cached = _musicService.getCachedSongs();
-    if (cached != null) {
-      setState(() {
-        songs = cached;
-      });
-      return;
-    }
-
-    // No cache, do full load
-    await _loadMusicFull();
-  }
-
-  // FULL LOAD WITH PROGRESS
-  Future<void> _loadMusicFull({bool forceRefresh = false}) async {
-    setState(() {
-      isLoading = true;
-      isScanning = true;
-      errorMessage = null;
-      scanProgress = 0;
-      scanTotal = 0;
-    });
-
-    try {
-      final hasPermission = await _musicService.requestMusicPermission();
-
-      if (hasPermission) {
-        // Scan with progress callback
-        final allSongs = await _musicService.getAllSongs(
-          forceRefresh: forceRefresh,
-          onProgress: (current, total) {
-            setState(() {
-              scanProgress = current;
-              scanTotal = total;
-            });
-          },
+      if (!albums.containsKey(albumKey)) {
+        albums[albumKey] = Album(
+          name: albumName,
+          artist: artistName,
+          songs: [],
         );
-
-        setState(() {
-          songs = allSongs;
-          isLoading = false;
-          isScanning = false;
-        });
-
-        if (songs.isEmpty) {
-          setState(() {
-            errorMessage = 'No music files found';
-          });
-        }
-      } else {
-        setState(() {
-          errorMessage = 'Permission denied';
-          isLoading = false;
-          isScanning = false;
-        });
       }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Error: $e';
-        isLoading = false;
-        isScanning = false;
-      });
+
+      albums[albumKey]!.songs.add(song);
     }
+
+    // Optional: sort songs inside each album
+    for (final album in albums.values) {
+      album.songs.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      );
+    }
+
+    return albums;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFE695),
-      appBar: AppBar(
-        title: Text('My Music (${songs.length})'),
-        backgroundColor: const Color(0xFF342E1B),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () => _loadMusicFull(forceRefresh: true),
-          ),
-        ],
-      ),
-      body: isScanning
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 20),
-                  Text(
-                    'Scanning music files...',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  if (scanTotal > 0)
-                    Text(
-                      '$scanProgress / $scanTotal directories',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                ],
-              ),
-            )
-          : errorMessage != null
-              ? Center(child: Text(errorMessage!))
-              : ListView.builder(
-                  itemCount: songs.length,
-                  itemBuilder: (context, index) {
-                    final song = songs[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF342E1B),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(Icons.music_note, color: Color(0xFFFFE695)),
-                      ),
-                      title: Text(song.title),
-                      subtitle: Text('${_musicService.getFormattedFileSize(song.fileSize)}'),
-                      trailing: Icon(Icons.play_arrow),
-                      onTap: () => print('Play: ${song.filePath}'),
-                    );
-                  },
-                ),
-    );
+  Future<List<Album>> getAlbums({bool forceRefresh = false}) async {
+    final songs = await getAllSongs(forceRefresh: forceRefresh);
+    final albumMap = categorizeByAlbum(songs);
+    return albumMap.values.toList();
   }
+
 }
-*/
