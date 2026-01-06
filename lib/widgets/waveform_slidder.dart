@@ -9,6 +9,7 @@ class WaveformSlider extends StatefulWidget {
   final Color? thumbColor;
   final Color? inactiveColor;
   final int barCount;
+  final int thumbRadius;
 
 
   const WaveformSlider({
@@ -20,6 +21,7 @@ class WaveformSlider extends StatefulWidget {
     this.thumbColor,
     this.inactiveColor,
     this.barCount  = 32,
+    this.thumbRadius = 10,
   });
 
   @override
@@ -86,6 +88,7 @@ class _WaveformSliderState extends State<WaveformSlider>
                   fillColor: widget.fillColor,
                   thumbColor: widget.thumbColor,
                   inactiveColor: widget.inactiveColor,
+                  thumbRadius: widget.thumbRadius,
                   progress: _controller.isAnimating
                       ? _animProgress.value
                       : _dragProgress,
@@ -111,6 +114,7 @@ class WaveformPainter extends CustomPainter {
   final Color? thumbColor;
   final Color? inactiveColor;
   final int barCount;
+  final int thumbRadius;
 
   late final List<double> _heights;
 
@@ -119,6 +123,7 @@ class WaveformPainter extends CustomPainter {
     this.fillColor,
     this.thumbColor,
     this.inactiveColor,
+    this.thumbRadius = 10,
     required this.barCount,
   }) {
     _heights = _generateHeights(barCount);
@@ -171,7 +176,7 @@ class WaveformPainter extends CustomPainter {
     // Thumb
     canvas.drawCircle(
       Offset(progressX, size.height / 2),
-      10,
+      thumbRadius.toDouble(),
       Paint()..color = thumbColor ?? const Color(0xFFFDE68A),
     );
   }

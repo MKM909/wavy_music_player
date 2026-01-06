@@ -1,12 +1,16 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wavy_muic_player/widgets/waveform_slidder.dart';
 
 import '../bottom_sheets/add_to_playlist_sheet.dart';
 import '../bottom_sheets/music_player_sheet.dart';
 import '../clippers/squircle_clipper.dart';
 import '../controllers/music_controller.dart';
 import '../model/liked_songs.dart';
+import '../model/song.dart';
 import '../services/liked_song_service.dart';
 import 'album_artwork.dart';
 
@@ -20,6 +24,7 @@ class MiniPlayer extends StatefulWidget {
 class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateMixin {
 
   bool isLiked = false;
+  bool expandMusicPlayer = false;
   late final AnimationController _vinylController;
   String? _lastSongPath;
 
@@ -61,6 +66,8 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
 
           final currentSong = controller.currentSong!;
 
+          bool isPlaying = controller.isPlaying;
+
           if (_lastSongPath != currentSong.filePath) {
             _lastSongPath = currentSong.filePath;
             isLiked = LikedSongsService().isLiked(currentSong.filePath);
@@ -95,210 +102,34 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             },
 
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 12),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [Color(0xFFFFE695),Color(0xFFFBBF24),]),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      spreadRadius: 5
-                  ),
-                ],
-              ),
+              margin: EdgeInsets.symmetric(horizontal: 20),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      child: Row(
-                        children: [
-                          ClipPath(
-                            clipper: SquircleClipper(12),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              color: Color(0xFF342E1B),
-                              child: AlbumArtwork(
-                                song: currentSong,
-                                size: 40,
-                                borderRadius: BorderRadius.circular(8),
-                                backgroundColor: const Color(0xFF342E1B),
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-                          Expanded(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  controller.currentSong!.title,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: GoogleFonts.rubik(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF342E1B),
-                                  ),
-                                ),
-                                SizedBox(height: 5,),
-                                Text(
-                                  controller.currentSong!.artist,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: GoogleFonts.rubik(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF342E1B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-                          InkWell(
-                            onTap: () {
-                              AddToPlaylistSheet.show(
-                                context,
-                                song: controller.currentSong!,
-                              );
-                            },
-                            child: Icon(
-                              Icons.playlist_add_rounded,
-                              color: const Color(0xFF342E1B),
-                              size: 26,
-                            ),
-                          ),
-
-
-                          SizedBox(width: 8),
-
-                          StreamBuilder<bool>(
-                            stream: LikedSongsService()
-                                .watchIsLiked(controller.currentSong!.filePath),
-                            builder: (context, snapshot) {
-                              final isLiked = snapshot.data ?? false;
-
-                              return InkWell(
-                                onTap: () {
-                                  final likedService = LikedSongsService();
-                                  if (isLiked) {
-                                    likedService.removeSong(controller.currentSong!.filePath);
-                                  } else {
-                                    likedService.addSong(
-                                      LikedSong(
-                                        filePath: controller.currentSong!.filePath,
-                                        title: controller.currentSong!.title,
-                                        artist: controller.currentSong!.artist,
-                                        fileSize: controller.currentSong!.fileSize,
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: Icon(
-                                  isLiked ? Icons.favorite : Icons.favorite_border,
-                                  color: isLiked
-                                      ? Colors.red
-                                      : const Color(0xFF342E1B).withOpacity(0.4),
-                                  size: 25,
-                                ),
-                              );
-                            },
-                          ),
-
-
-
-                          SizedBox(width: 10),
-
-                          GestureDetector(
-                            onTap: () => controller.togglePlayPause(),
-                            child: RotationTransition(
-                              turns: _vinylController,
-                              child: Container(
-                                width: 40,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF1F2937), Color(0xFF000000)],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.4),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: Stack(
-                                  children: [
-                                    Center(
-                                      child: Container(
-                                        width: 25,
-                                        height: 25,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(0.1),
-                                            width: 2,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Center(
-                                      child: Container(
-                                        width: 25,
-                                        height: 25,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(0.1),
-                                            width: 2,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Center(
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Color(0xFFFDE68A),
-                                        ),
-                                        child: Center(
-                                          child: Icon( controller.isPlaying
-                                              ? Icons.pause_rounded
-                                              : Icons.play_arrow_rounded, size: 16, color: Colors.black,),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        ],
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(isPlaying ? (expandMusicPlayer ? 40 : 50) : 100), topRight: Radius.circular(isPlaying ? (expandMusicPlayer ? 40 : 50) : 100), bottomLeft: Radius.circular(isPlaying ? 50 : 100), bottomRight: Radius.circular(isPlaying ? 50 : 100)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOutCubic,
+                    height: 50, // 👈 explicit
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(50), topRight: Radius.circular(50), bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50)),
+                    ),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.98, end: 1.0),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      builder: (_, scale, child) {
+                        return Transform.scale(scale: scale, child: child);
+                      },
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 1200),
+                        curve: Curves.easeOut,
+                        opacity: expandMusicPlayer ? 1.0 : 0.85,
+                        child: _miniPlayer(),
                       ),
                     ),
-                    LinearProgressIndicator(
-                      minHeight: 3,
-                      value: controller.progress,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF342E1B),
-                      ),
-                    )
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -306,4 +137,96 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
         }
     );
   }
+
+  Widget _miniPlayer(){
+    return Consumer<MusicController>(
+        builder: (context, controller, child) {
+
+          if (controller.currentSong == null) {
+            return const SizedBox.shrink();
+          }
+
+          final currentSong = controller.currentSong!;
+
+          if (_lastSongPath != currentSong.filePath) {
+            _lastSongPath = currentSong.filePath;
+            isLiked = LikedSongsService().isLiked(currentSong.filePath);
+          }
+
+
+          if (controller.isPlaying) {
+            if (!_vinylController.isAnimating) {
+              _vinylController.repeat();
+            }
+          } else {
+            _vinylController.stop();
+          }
+
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: Material(
+              borderRadius: BorderRadius.circular(100),
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => MusicPlayerSheet.show(context),
+                child:  _collapsedMiniPlayer(controller,currentSong),
+              ),
+            ),
+          );
+        }
+    );
+  }
+
+  Widget _collapsedMiniPlayer(MusicController controller, Song currentSong){
+    return Container(
+      height: 40,
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            ClipPath(
+              clipper: SquircleClipper(5),
+              child: Container(
+                width: 20,
+                height: 20,
+                color: Color(0xFF342E1B),
+                child: AlbumArtwork(
+                  song: currentSong,
+                  size: 20,
+                  borderRadius: BorderRadius.circular(8),
+                  backgroundColor: const Color(0xFF342E1B),
+                ),
+              ),
+            ),
+            SizedBox(width: 20,),
+            Expanded(
+              child: WaveformSlider(
+                barCount: 15,
+                height: 10,
+                fillColor: const Color(0xFFFFE695),
+                thumbColor: const Color(0xFFFB923C),
+                inactiveColor: Colors.white,
+                thumbRadius: 8,
+                progress: controller.progress,
+                onChanged: (value) {
+                  final duration = controller.totalDuration;
+                  final seekTo = duration * value;
+                  controller.seek(seekTo);
+                },
+              ),
+            ),
+            SizedBox(width: 20,),
+            Text(
+              controller.formatDuration(controller.totalDuration),
+              style: GoogleFonts.rubik(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFFFFE695),
+              ),
+            ),
+          ]
+      ),
+    );
+  }
+
 }

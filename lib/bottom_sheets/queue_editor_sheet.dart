@@ -238,40 +238,43 @@ class QueueEditorSheet extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: (){
-                    musicController.toggleShuffle();
-                  },
-                  splashColor: Colors.white.withValues(alpha: 0.2),
-                  focusColor: Colors.white.withValues(alpha: 0.2),
-                  child: Container(
-                    height: 70,
-                    width: 150,
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Color(0xFF342E1B).withValues(alpha: 0.95),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.shuffle_sharp,
-                          color: musicController.isShuffleOn ? Colors.orange : Colors.white,
-                          size: 30,
-                        ),
-                        SizedBox(height: 3),
-                        Text(
-                          'Shuffle',
-                          style: GoogleFonts.rubik(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 52, sigmaY: 52),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: (){
+                      musicController.toggleShuffle();
+                    },
+                    splashColor: Colors.white.withValues(alpha: 0.2),
+                    focusColor: Colors.white.withValues(alpha: 0.2),
+                    child: Container(
+                      height: 70,
+                      width: 150,
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black.withValues(alpha: 0.5),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.shuffle_sharp,
                             color: musicController.isShuffleOn ? Colors.orange : Colors.white,
-                            fontSize: 14,
+                            size: 30,
                           ),
-                        )
-                      ],
+                          SizedBox(height: 3),
+                          Text(
+                            'Shuffle',
+                            style: GoogleFonts.rubik(
+                              color: musicController.isShuffleOn ? Colors.orange : Colors.white,
+                              fontSize: 14,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),

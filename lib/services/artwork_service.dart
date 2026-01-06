@@ -1,8 +1,36 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:audiotags/audiotags.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 class ArtworkService {
   static final Map<String, Uint8List?> _artworkCache = {};
+
+  static final Map<String, Uri?> _artUriCache = {};
+
+  static Future<Uri?> getArtworkUri(String filePath) async {
+    if (_artUriCache.containsKey(filePath)) {
+      return _artUriCache[filePath];
+    }
+
+    final bytes = await extractArtwork(filePath);
+    if (bytes == null) {
+      _artUriCache[filePath] = null;
+      return null;
+    }
+
+    final dir = await getTemporaryDirectory();
+    final file = File(
+      p.join(dir.path, '${filePath.hashCode}.jpg'),
+    );
+
+    await file.writeAsBytes(bytes, flush: true);
+
+    final uri = Uri.file(file.path);
+    _artUriCache[filePath] = uri;
+    return uri;
+  }
 
   /// Extract artwork from audio file
   static Future<Uint8List?> extractArtwork(String filePath) async {

@@ -53,7 +53,7 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
         }
 
         return ListView.builder(
-          padding: EdgeInsets.only(left: 10, right: 10, bottom: 160),
+          padding: EdgeInsets.only(top: 110,left: 10, right: 10, bottom: 160),
           itemCount: songs.length,
           itemBuilder: (context, index) {
             final likedSong = songs[index];
@@ -227,14 +227,14 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             ClipPath(
-                              clipper: SquircleClipper(15),
+                              clipper: SquircleClipper(20),
                               child: Container(
-                                width: 50,
-                                height: 50,
+                                width: 60,
+                                height: 60,
                                 color: Color(0xFF342E1B),
                                 child: AlbumArtwork(
                                   song: song,
-                                  size: 50,
+                                  size: 60,
                                   borderRadius: BorderRadius.circular(8),
                                   backgroundColor: const Color(0xFF342E1B),
                                 ),
@@ -253,7 +253,7 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.rubik(
-                                      fontSize: 18,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.w500,
                                       color: isActuallyPlaying
                                           ? Colors.orange
@@ -266,7 +266,7 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.rubik(
-                                      fontSize: 14,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                       color: isActuallyPlaying
                                           ? Colors.orange
@@ -281,9 +281,27 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
 
                             ClipRRect(
                               borderRadius: BorderRadius.circular(100),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    AddToPlaylistSheet.show(context, song: song);
+                                  },
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.playlist_add,
+                                      color: Color(0xFF342E1B),
+                                      size: 30,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10,),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(100),
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                    sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(
@@ -304,43 +322,12 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
                                       height: 40,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Color(0xFF342E1B).withValues(
-                                            alpha: 0.5),
-                                      ),
-                                      child: Icon(
-                                        isCurrentSong ? (isActuallyPlaying ? Icons
-                                            .pause : Icons.play_arrow) : Icons
-                                            .play_arrow_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 5,),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () {
-                                      AddToPlaylistSheet.show(context, song: song);
-                                    },
-                                    child: Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
                                         color: Color(0xFF342E1B).withValues(alpha: 0.5),
                                       ),
                                       child: Icon(
-                                        Icons.playlist_add,
+                                        isCurrentSong ? (isActuallyPlaying ? Icons.pause : Icons.play_arrow) : Icons.play_arrow_rounded,
                                         color: Colors.white,
-                                        size: 20,
+                                        size: 25,
                                       ),
                                     ),
                                   ),

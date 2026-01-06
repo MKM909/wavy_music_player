@@ -51,10 +51,10 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
     await _loadMusicFull();
   }
 
-  Future<void> _loadMusicFull({bool forceRefresh = false}) async {
+  Future<void> _loadMusicFull({bool forceRefresh = false, bool isBackground = false}) async {
     setState(() {
       isLoading = true;
-      isScanning = true;
+      isScanning = !isBackground;
       errorMessage = null;
       scanProgress = 0;
       scanTotal = 0;
@@ -109,7 +109,13 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
         ? _buildErrorView()
         : songs.isEmpty
         ? _buildEmptyView()
-        : _buildSongList();
+        : RefreshIndicator(
+      displacement: 110,
+        backgroundColor: Color(0xFF342E1B),
+        color: Color(0xFFFFE695),
+        onRefresh: () { _loadMusicFull(forceRefresh: true, isBackground: true); return Future.delayed(Duration(seconds: 1)); },
+        child: _buildSongList()
+    );
   }
 
   Widget _buildLoadingView() {
@@ -176,8 +182,8 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
               child: Text(
                 'Try Again',
                 style: GoogleFonts.rubik(
-                  fontSize: 16,
-                  color: Color(0xFFFFE695)
+                    fontSize: 16,
+                    color: Color(0xFFFFE695)
                 ),
               ),
             ),
@@ -226,7 +232,7 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
   Widget _buildSongList() {
     return ListView.builder(
       itemCount: songs.length,
-      padding: EdgeInsets.only(left: 10, right: 10, bottom: 160),
+      padding: EdgeInsets.only(top: 110,left: 10, right: 10, bottom: 160),
       itemBuilder: (context, index) {
         final song = songs[index];
         return _buildSongTile(
@@ -267,21 +273,21 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                   margin: EdgeInsets.only(bottom: 10, top: 10),
                   padding: EdgeInsets.only(left: 10, right: 10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24)
+                      borderRadius: BorderRadius.circular(24)
                   ),
                   child: Center(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         ClipPath(
-                          clipper: SquircleClipper(15),
+                          clipper: SquircleClipper(20),
                           child: Container(
-                            width: 50,
-                            height: 50,
+                            width: 60,
+                            height: 60,
                             color: Color(0xFF342E1B),
                             child: AlbumArtwork(
                               song: song,
-                              size: 50,
+                              size: 60,
                               borderRadius: BorderRadius.circular(8),
                               backgroundColor: const Color(0xFF342E1B),
                             ),
@@ -300,7 +306,7 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.rubik(
-                                  fontSize: 18,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w500,
                                   color: isActuallyPlaying
                                       ? Colors.orange
@@ -313,7 +319,7 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.rubik(
-                                  fontSize: 14,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                   color: isActuallyPlaying
                                       ? Colors.orange
@@ -325,6 +331,25 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                         ),
 
                         SizedBox(width: 15,),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                AddToPlaylistSheet.show(context, song: song);
+                              },
+                              child: Center(
+                                child: Icon(
+                                  Icons.playlist_add_rounded,
+                                  color: Color(0xFF342E1B),
+                                  size: 30,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10,),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: BackdropFilter(
@@ -354,41 +379,14 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                                   child: Icon(
                                     isCurrentSong ? (isActuallyPlaying ? Icons.pause : Icons.play_arrow) : Icons.play_arrow_rounded,
                                     color: Colors.white,
-                                    size: 20,
+                                    size: 25,
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(width: 5,),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  AddToPlaylistSheet.show(context, song: song);
-                                },
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFF342E1B).withValues(alpha: 0.5),
-                                  ),
-                                  child: Icon(
-                                    Icons.playlist_add,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+
                       ],
                     ),
                   ),

@@ -5,7 +5,10 @@ import 'package:wavy_muic_player/screens/home_page.dart';
 import 'package:wavy_muic_player/screens/music_page.dart';
 import 'package:wavy_muic_player/screens/profile_page.dart';
 import 'package:wavy_muic_player/screens/search_page.dart';
+import 'package:wavy_muic_player/widgets/fluid_nav_bar.dart';
 import 'package:wavy_muic_player/widgets/mini_player.dart';
+
+import '../model/nav_item.dart';
 
 // Demo usage matching the design
 class Home extends StatefulWidget {
@@ -26,6 +29,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     MusicPage(),
     SearchPage(),
     ProfilePage(),
+  ];
+
+  List<NavItem> tabIcons = const [
+    NavItem(label: 'Home', icon: Icons.home_rounded),
+    NavItem(label: 'Music', icon: Icons.library_music),
+    NavItem(label: 'Search', icon: Icons.search),
+    NavItem(label: 'Profile', icon: Icons.person_rounded),
   ];
 
   @override
@@ -57,81 +67,50 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     setState(() {
       _currentPage = index;
     });
-    // Update nav bar to match swiped page
-    final CurvedNavigationBarState? navBarState =
-        _bottomNavigationKey.currentState;
-    navBarState?.setPage(index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE695),
-      body: Stack(
-        children: [
-          // 🎨 Animated page transitions with swipe enabled
-          Positioned.fill(
-            child: SafeArea(
-              top: false,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: _onPageChanged, // 👈 Syncs nav bar when swiping
-                children: tab,
-              ),
-            ),
-          ),
-
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    const Color(0xFF342E1B).withValues(alpha: 0.1),
-                    const Color(0xFF342E1B).withValues(alpha: 0.6),
-                    const Color(0xFF342E1B).withValues(alpha: 0.9),
-                    const Color(0xFF342E1B),
-                  ],
+      body: SafeArea(
+        bottom: false,
+        top: false,
+        child: Stack(
+          children: [
+            // 🎨 Animated page transitions with swipe enabled
+            Positioned.fill(
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: _onPageChanged, // 👈 Syncs nav bar when swiping
+                  children: tab,
                 ),
               ),
             ),
-          ),
 
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: CurvedNavigationBar(
-              key: _bottomNavigationKey, // 👈 Key for programmatic control
-              items: <Widget>[
-                Icon(Icons.home_sharp, size: 30, color: Colors.white),
-                Icon(Icons.my_library_music_sharp, size: 30, color: Colors.white),
-                Icon(Icons.search_sharp, size: 30, color: Colors.white),
-                Icon(Icons.person_sharp, size: 30, color: Colors.white),
-              ],
-              index: _currentPage,
-              backgroundColor: Colors.transparent,
-              height: 75,
-              color: Color(0xFF342E1B),
-              onTap: _onNavBarTapped, // 👈 Animates PageView when tapped
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: FluidNavBar(
+                  key: _bottomNavigationKey,
+                  tabs: tabIcons,
+                  currentIndex: _currentPage,
+                  onTap: _onNavBarTapped
+              ),
             ),
-          ),
 
-          Positioned(
-            bottom: 100,
-            left: 0,
-            right: 0,
-            child: MiniPlayer(),
-          )
+            // Positioned(
+            //   bottom: 100,
+            //   left: 0,
+            //   right: 0,
+            //   child: MiniPlayer(),
+            // )
 
-        ],
+          ],
+        ),
       ),
     );
   }

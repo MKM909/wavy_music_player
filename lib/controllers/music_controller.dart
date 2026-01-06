@@ -1,13 +1,13 @@
 import 'dart:async';
-
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../bottom_sheets/queue_editor_sheet.dart';
+import '../handlers/wavy_audio_handler.dart';
 import '../model/song.dart';
-import '../services/music_library_service.dart';
+import '../services/artwork_service.dart';
 
-enum PlaybackState {
+enum PlaybackStateEnum {
   playing,
   paused,
   stopped,
@@ -25,11 +25,11 @@ class MusicController extends ChangeNotifier {
 
   // Current state
   Song? _currentSong;
-  PlaybackState _playbackState = PlaybackState.stopped;
+  PlaybackStateEnum _playbackStateEnum = PlaybackStateEnum.stopped;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
   bool _isShuffleOn = false;
-  RepeatMode _repeatMode = RepeatMode.off;
+  RepeatMode _repeatMode = RepeatMode.all;
 
   // Queue management
   List<Song> _queue = [];
@@ -45,29 +45,47 @@ class MusicController extends ChangeNotifier {
 
   // Getters
   Song? get currentSong => _currentSong;
-  PlaybackState get playbackState => _playbackState;
+  PlaybackStateEnum get playbackState => _playbackStateEnum;
   Duration get currentPosition => _currentPosition;
   Duration get totalDuration => _totalDuration;
-  bool get isPlaying => _playbackState == PlaybackState.playing;
+  bool get isPlaying => _playbackStateEnum == PlaybackStateEnum.playing;
   bool get isShuffleOn => _isShuffleOn;
   RepeatMode get repeatMode => _repeatMode;
   List<Song> get queue => _queue;
   int get currentIndex => _currentIndex;
   bool get hasNext => _currentIndex < _queue.length - 1;
   bool get hasPrevious => _currentIndex > 0;
+  AudioPlayer get audioPlayer => _audioPlayer;
+
+
+  late final WavyAudioHandler _audioHandler;
 
   MusicController() {
     _initAudioPlayer();
   }
 
-  void _initAudioPlayer() {
-    // Listen to position updates
+  void _initAudioPlayer() async {
+    try {
+      // 🔹 Step 1: Initialize audioHandler first
+      _audioHandler = await AudioService.init(
+        builder: () => WavyAudioHandler(this), // We'll fix circular dependency in a sec
+        config: const AudioServiceConfig(
+          androidNotificationChannelId: 'com.wavy.music.player.channel',
+          androidNotificationChannelName: 'Wavy Music',
+          androidNotificationOngoing: false,
+          androidStopForegroundOnPause: false,
+        ),
+      );
+      debugPrint('MYAPP: init -> ✅ AudioService initialized');
+    } catch (e) {
+      debugPrint('MYAPP: init -> ❌ AudioService init error: $e');
+    }
     _audioPlayer.positionStream.listen((position) {
       _currentPosition = position;
+      _updateHandlerPosition();
       notifyListeners();
     });
 
-    // Listen to duration updates
     _audioPlayer.durationStream.listen((duration) {
       if (duration != null) {
         _totalDuration = duration;
@@ -76,35 +94,31 @@ class MusicController extends ChangeNotifier {
     });
 
     _audioPlayer.playerStateStream.listen((state) {
-      final playing = state.playing;
-
       if (state.processingState == ProcessingState.completed) {
         _onSongComplete();
         return;
       }
 
-      if (playing) {
-        _playbackState = PlaybackState.playing;
+      if (state.playing) {
+        _playbackStateEnum = PlaybackStateEnum.playing;
       } else if (state.processingState == ProcessingState.ready) {
-        _playbackState = PlaybackState.paused;
+        _playbackStateEnum = PlaybackStateEnum.paused;
       } else if (state.processingState == ProcessingState.loading ||
           state.processingState == ProcessingState.buffering) {
-        _playbackState = PlaybackState.loading;
+        _playbackStateEnum = PlaybackStateEnum.loading;
       }
 
+      _updateHandlerState();
       notifyListeners();
     });
-
   }
 
-  // ========== PLAYBACK CONTROLS ==========
-
+  // ===================== Playback Controls =====================
   Future<void> playSong(Song song, {List<Song>? newQueue, int? startIndex}) async {
     try {
-      _playbackState = PlaybackState.loading;
+      _playbackStateEnum = PlaybackStateEnum.loading;
       notifyListeners();
 
-      // Update queue if provided
       if (newQueue != null) {
         _queue = List.from(newQueue);
         _originalQueue = List.from(newQueue);
@@ -113,18 +127,29 @@ class MusicController extends ChangeNotifier {
 
       _currentSong = song;
 
-      // Load and play the song
+      // Update AudioHandler
+      await _audioHandler.setCurrentMediaItem(song);
+      _audioHandler.updateQueue(await _queueToMediaItems(_queue));
+
+      // Load and play
       await _audioPlayer.setFilePath(song.filePath);
       await _audioPlayer.play();
 
-      _playbackState = PlaybackState.playing;
+      _playbackStateEnum = PlaybackStateEnum.playing;
       notifyListeners();
     } catch (e) {
-      print('Error playing song: $e');
-      _playbackState = PlaybackState.stopped;
+      debugPrint('MYAPP: playSong -> Error playing song: $e');
+      _playbackStateEnum = PlaybackStateEnum.stopped;
       notifyListeners();
     }
   }
+
+  Future<void> playAt(int index) async {
+    if (index < 0 || index >= _queue.length) return;
+    _currentIndex = index;
+    await playSong(_queue[index]);
+  }
+
 
   Future<void> togglePlayPause() async {
     if (_audioPlayer.playing) {
@@ -147,7 +172,7 @@ class MusicController extends ChangeNotifier {
     _sleepTimer?.cancel();
     _clearSleepTimer();
     await _audioPlayer.stop();
-    _playbackState = PlaybackState.stopped;
+    _playbackStateEnum = PlaybackStateEnum.stopped;
     _currentPosition = Duration.zero;
     notifyListeners();
   }
@@ -160,20 +185,43 @@ class MusicController extends ChangeNotifier {
   // ========== QUEUE MANAGEMENT ==========
 
   Future<void> playNext() async {
+    if (_queue.isEmpty) return;
+
     if (!hasNext) {
       if (_repeatMode == RepeatMode.all) {
         _currentIndex = 0;
-      } else {
-        return;
       }
     } else {
       _currentIndex++;
     }
 
-    if (_currentIndex < _queue.length) {
-      await playSong(_queue[_currentIndex]);
+
+    await _restartAndPlay(_queue[_currentIndex]);
+  }
+
+  Future<void> _restartAndPlay(Song song) async {
+    try {
+      _playbackStateEnum = PlaybackStateEnum.loading;
+      notifyListeners();
+
+      // 🔑 Reset player completely
+      await _audioPlayer.stop();
+      await _audioPlayer.seek(Duration.zero);
+
+      _currentSong = song;
+
+      await _audioHandler.setCurrentMediaItem(song);
+
+      await _audioPlayer.setFilePath(song.filePath);
+      await _audioPlayer.play();
+
+      _playbackStateEnum = PlaybackStateEnum.playing;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('MYAPP: _restartAndPlay -> Restart play error: $e');
     }
   }
+
 
   Future<void> playPrevious() async {
     // If more than 3 seconds played, restart current song
@@ -199,16 +247,28 @@ class MusicController extends ChangeNotifier {
   }
 
   void _onSongComplete() {
-    if (_repeatMode == RepeatMode.one) {
-      playSong(_currentSong!);
-    } else {
-      playNext();
+    if (_queue.isEmpty) return;
+
+    if (_repeatMode == RepeatMode.one && _currentSong != null) {
+      _restartAndPlay(_currentSong!);
+      return;
     }
+
+    playNext();
+  }
+
+
+  Future<List<MediaItem>> _queueToMediaItems(List<Song> songs) async {
+    final items = <MediaItem>[];
+    for (final song in songs) {
+      items.add(await _songToMediaItem(song));
+    }
+    return items;
   }
 
   // ========== SHUFFLE & REPEAT ==========
 
-  void toggleShuffle() {
+  Future<void> toggleShuffle() async {
     _isShuffleOn = !_isShuffleOn;
 
     if (_isShuffleOn) {
@@ -236,6 +296,7 @@ class MusicController extends ChangeNotifier {
       }
     }
 
+    _audioHandler.updateQueue(await _queueToMediaItems(_queue));
     notifyListeners();
   }
 
@@ -256,13 +317,14 @@ class MusicController extends ChangeNotifier {
 
   // ========== QUEUE MANIPULATION ==========
 
-  void addToQueue(Song song) {
+  Future<void> addToQueue(Song song) async {
     _queue.add(song);
     _originalQueue.add(song);
+    _audioHandler.updateQueue(await _queueToMediaItems(_queue));
     notifyListeners();
   }
 
-  void removeFromQueue(int index) {
+  Future<void> removeFromQueue(int index) async {
     if (index < _queue.length) {
       final song = _queue[index];
       _queue.removeAt(index);
@@ -272,8 +334,8 @@ class MusicController extends ChangeNotifier {
       if (index < _currentIndex) {
         _currentIndex--;
       }
-
-      notifyListeners();
+    _audioHandler.updateQueue(await _queueToMediaItems(_queue));
+    notifyListeners();
     }
   }
 
@@ -319,7 +381,7 @@ class MusicController extends ChangeNotifier {
     return _currentPosition.inMilliseconds / _totalDuration.inMilliseconds;
   }
 
-  bool get isSpinning => _playbackState == PlaybackState.playing;
+  bool get isSpinning => _playbackStateEnum == PlaybackStateEnum.playing;
 
   @override
   void dispose() {
@@ -344,7 +406,7 @@ class MusicController extends ChangeNotifier {
   }) async {
     if (songs.isEmpty) return;
 
-    _playbackState = PlaybackState.loading;
+    _playbackStateEnum = PlaybackStateEnum.loading;
 
     _queue = List.from(songs);
     _originalQueue = List.from(songs);
@@ -353,15 +415,21 @@ class MusicController extends ChangeNotifier {
     final songToPlay = _queue[_currentIndex];
     _currentSong = songToPlay;
 
+    // Update AudioHandler
+    await _audioHandler.setCurrentMediaItem(_queue[_currentIndex]);
+    _audioHandler.updateQueue(await _queueToMediaItems(_queue));
+
     notifyListeners();
 
     try {
+      final mediaItem = await _songToMediaItem(songToPlay);
+      _audioHandler.playMediaItem(mediaItem);
       await _audioPlayer.setFilePath(songToPlay.filePath);
       await _audioPlayer.play();
-      _playbackState = PlaybackState.playing;
+      _playbackStateEnum = PlaybackStateEnum.playing;
     } catch (e) {
       debugPrint('Error playing playlist: $e');
-      _playbackState = PlaybackState.stopped;
+      _playbackStateEnum = PlaybackStateEnum.stopped;
     }
 
     notifyListeners();
@@ -390,6 +458,73 @@ class MusicController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<MediaItem> _songToMediaItem(Song song) async {
+    Uri? artUri = await ArtworkService.getArtworkUri(song.filePath);
+    // If null, use default image from assets or network
+    artUri ??= _audioHandler.getDefaultArtUri();
+    return MediaItem(
+      id: song.filePath,
+      title: song.title,
+      artist: song.artist,
+      album: song.album,
+      duration: totalDuration,
+      artUri: artUri,
+    );
+  }
 
+  // ===================== AudioHandler Sync =====================
+  void _updateHandlerState() {
+    _audioHandler.playbackState.add(
+      PlaybackState(
+        controls: [
+          MediaControl.skipToPrevious,
+          _playbackStateEnum == PlaybackStateEnum.playing
+              ? MediaControl.pause
+              : MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        androidCompactActionIndices: const [0, 1, 2],
+        processingState: _mapProcessingState(_audioPlayer.processingState),
+        playing: _playbackStateEnum == PlaybackStateEnum.playing,
+        updatePosition: _currentPosition,
+        bufferedPosition: _audioPlayer.bufferedPosition,
+        speed: _audioPlayer.speed,
+        systemActions: {
+          MediaAction.seek,
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.stop,
+          MediaAction.skipToNext,
+          MediaAction.skipToPrevious,
+        },
+        queueIndex: _currentIndex,
+        updateTime: DateTime.now(),
+      ),
+    );
+  }
+
+
+
+  void _updateHandlerPosition() {
+    final current = _audioHandler.playbackState.value;
+    _audioHandler.playbackState.add(
+      current.copyWith(updatePosition: _currentPosition),
+    );
+  }
+
+  AudioProcessingState _mapProcessingState(ProcessingState state) {
+    switch (state) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
+  }
 
 }

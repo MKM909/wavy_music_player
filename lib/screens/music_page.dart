@@ -66,8 +66,9 @@ class _MusicPageState extends State<MusicPage> {
   void _onPageChanged(int index) {
     setState(() {
       _currentPage = index;
+      edit = false;
     });
-    double offset = index * 40;
+    double offset = index * 80;
 
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
@@ -94,22 +95,43 @@ class _MusicPageState extends State<MusicPage> {
       backgroundColor: const Color(0xFFFFE695),
       body: Padding(
           padding: const EdgeInsets.only(top: 40,),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
+          child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20),
-                child: _buildheader(),
+              PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                children: tabs,
               ),
-              SizedBox(height: 10,),
-              _buildTabs(),
-              SizedBox(height: 10,),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: _onPageChanged,
-                  children: tabs,
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFFFFE695),
+                        const Color(0xFFFFE695).withValues(alpha: 0.9),
+                        const Color(0xFFFFE695).withValues(alpha: 0.7),
+                        const Color(0xFFFFE695).withValues(alpha: 0.3),
+                        const Color(0xFFFFE695).withValues(alpha: 0.1),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, right: 20),
+                        child: _buildHeader(),
+                      ),
+                      SizedBox(height: 10,),
+                      _buildTabs(),
+                      SizedBox(height: 10,),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -118,7 +140,7 @@ class _MusicPageState extends State<MusicPage> {
     );
   }
 
-  Widget _buildheader(){
+  Widget _buildHeader(){
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -133,108 +155,80 @@ class _MusicPageState extends State<MusicPage> {
         Text(
           'Library',
           style: GoogleFonts.rubik(
-            fontSize: 40,
+            fontSize: 45,
             fontWeight: FontWeight.w600,
             color: Color(0xFF342E1B),
           ),
         ),
         Spacer(),
-        _currentPage == 1
-            ? ClipRRect(
-          borderRadius: BorderRadius.circular(100),
-          child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: (){ setState(() {
-                    edit = !edit;
-                  }); },
-                  splashColor: Colors.brown.withValues(alpha: 0.2),
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF342E1B).withValues(alpha: 0.35),
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              )
-          ),
-        )
-            : Container(),
-        SizedBox(width: 10,),
-
-        _currentPage == 1
-          ? ClipRRect(
+        _fadeAction(
+          visible: _currentPage == 1,
+          child: ClipRRect(
+            key: const ValueKey('edit'),
             borderRadius: BorderRadius.circular(100),
             child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: (){ PlaylistCreationSheet.show(context); },
-                    splashColor: Colors.brown.withValues(alpha: 0.2),
-                    highlightColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    child: Container(
-                      height: 40,
-                      width: 40,
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF342E1B).withValues(alpha: 0.35),
-                      ),
-                      child: Icon(
-                        CupertinoIcons.add,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                )
-            ),
-          )
-          : Container(),
-        SizedBox(width: 10,),
-
-        ClipRRect(
-          borderRadius: BorderRadius.circular(100),
-          child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: (){},
+                  onTap: () {
+                    setState(() => edit = !edit);
+                  },
                   splashColor: Colors.brown.withValues(alpha: 0.2),
                   highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
                   child: Container(
-                    height: 40,
-                    width: 40,
-                    padding: EdgeInsets.all(8),
+                    height: 50,
+                    width: 50,
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0xFF342E1B).withValues(alpha: 0.35),
+                      color: const Color(0xFF342E1B).withValues(alpha: 0.35),
                     ),
-                    child: Icon(
-                      CupertinoIcons.ellipsis,
+                    child: const Icon(
+                      Icons.edit,
                       color: Colors.white,
-                      size: 20,
+                      size: 25,
                     ),
                   ),
                 ),
-              )
+              ),
+            ),
           ),
+        ),
+
+        SizedBox(width: 10,),
+
+        _fadeAction(
+            visible: _currentPage == 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: (){ PlaylistCreationSheet.show(context); },
+                      splashColor: Colors.brown.withValues(alpha: 0.2),
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      child: Container(
+                        height: 50,
+                        width: 50,
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF342E1B).withValues(alpha: 0.35),
+                        ),
+                        child: Icon(
+                          CupertinoIcons.add,
+                          color: Colors.white,
+                          size: 25,
+                        ),
+                      ),
+                    ),
+                  )
+              ),
+            )
         ),
 
       ],
@@ -242,9 +236,37 @@ class _MusicPageState extends State<MusicPage> {
 
   }
 
+  Widget _fadeAction({
+    required bool visible,
+    required Widget child,
+  }) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (widget, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.9, end: 1.0).animate(animation),
+            child: widget,
+          ),
+        );
+      },
+      child: visible
+          ? child
+          : const SizedBox(
+        key: ValueKey('empty'),
+        width: 50,
+        height: 50,
+      ),
+    );
+  }
+
+
   Widget _buildTabs(){
     return SizedBox(
-      height: 40,
+      height: 50,
       child: ListView.builder(
         controller: _scrollController,
           shrinkWrap: true,
@@ -260,36 +282,42 @@ class _MusicPageState extends State<MusicPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: (){
-                              _onNavBarTapped(index);
-                            },
-                            splashColor: Colors.brown.withValues(alpha: 0.2),
-                            highlightColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
-                              constraints: BoxConstraints(minWidth: 60),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(100),
-                                color: index == _currentPage ? Color(0xFF342E1B) : Color(0xFF342E1B).withValues(alpha: 0.35),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  musicTabs[index].title,
-                                  style: GoogleFonts.rubik(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: index == _currentPage ? Colors.white : Color(0xFF342E1B),
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: (){
+                                  _onNavBarTapped(index);
+                                },
+                                splashColor: Colors.brown.withValues(alpha: 0.2),
+                                highlightColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                                  constraints: BoxConstraints(minWidth: 60),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(100),
+                                    color: index == _currentPage ? Color(0xFF342E1B).withValues(alpha: 0.65) : Color(0xFF342E1B).withValues(alpha: 0.35),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      musicTabs[index].title,
+                                      style: GoogleFonts.rubik(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w500,
+                                        color: index == _currentPage ? Colors.white : Color(0xFF342E1B),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        )
+                            )
+                        ),
+                      ),
                     ),
                   ),
                 ),
