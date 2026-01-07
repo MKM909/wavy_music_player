@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:wavy_muic_player/model/artist.dart';
 import 'dart:typed_data';
 
 import '../model/album.dart';
@@ -275,10 +276,42 @@ class MusicLibraryService {
     return albums;
   }
 
+  Map<String, Artist> categorizeByArtist(List<Song> songs) {
+    final Map<String, Artist> artists = {};
+
+    for (final song in songs) {
+      final artistName = song.artist ?? 'Unknown Artist';
+
+      if (!artists.containsKey(artistName)) {
+        artists[artistName] = Artist(
+          name: artistName,
+          songs: [],
+        );
+      }
+
+      artists[artistName]!.songs.add(song);
+    }
+
+    // Optional: sort songs inside each album
+    for (final artist in artists.values) {
+      artist.songs.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      );
+    }
+
+    return artists;
+  }
+
   Future<List<Album>> getAlbums({bool forceRefresh = false}) async {
     final songs = await getAllSongs(forceRefresh: forceRefresh);
     final albumMap = categorizeByAlbum(songs);
     return albumMap.values.toList();
+  }
+
+  Future<List<Artist>> getArtists({bool forceRefresh = false}) async {
+    final songs = await getAllSongs(forceRefresh: forceRefresh);
+    final artistMap = categorizeByArtist(songs);
+    return artistMap.values.toList();
   }
 
 }

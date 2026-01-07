@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wavy_muic_player/bottom_sheets/playlist_creation_sheet.dart';
 import 'package:wavy_muic_player/screens/music/albums.dart';
+import 'package:wavy_muic_player/screens/music/artists.dart';
 import 'package:wavy_muic_player/screens/music/playlists.dart';
 
 import '../model/music_tabs.dart';
@@ -88,8 +89,8 @@ class _MusicPageState extends State<MusicPage> {
       DownloadedSongs(),
       Playlists(edit: edit,),
       LikedSongsScreen(),
-      Albums(edit: edit),
-      Container(),
+      Albums(),
+      Artists(),
     ];
 
     return Scaffold(
@@ -163,7 +164,7 @@ class _MusicPageState extends State<MusicPage> {
         ),
         Spacer(),
         _fadeAction(
-          visible: _currentPage == 1 || _currentPage == 3,
+          visible: _currentPage == 1,
           child: ClipRRect(
             key: const ValueKey('edit'),
             borderRadius: BorderRadius.circular(100),
@@ -283,11 +284,11 @@ class _MusicPageState extends State<MusicPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                      filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30, tileMode: TileMode.clamp),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(100),
                         child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
+                            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30, tileMode: TileMode.clamp),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -302,7 +303,7 @@ class _MusicPageState extends State<MusicPage> {
                                   constraints: BoxConstraints(minWidth: 60),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(100),
-                                    color: index == _currentPage ? Color(0xFF342E1B).withValues(alpha: 0.65) : Color(0xFF342E1B).withValues(alpha: 0.35),
+                                    color: index == _currentPage ? Color(0xFF342E1B).withValues(alpha: 0.75) : Color(0xFF342E1B).withValues(alpha: 0.25),
                                   ),
                                   child: Center(
                                     child: Text(

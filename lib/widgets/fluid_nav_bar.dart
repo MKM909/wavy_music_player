@@ -83,7 +83,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOutCubic,
-                      height: expandMusicPlayer ? 190 : 130, // 👈 explicit
+                      height: expandMusicPlayer ? 175 : 130, // 👈 explicit
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.only(topLeft: Radius.circular(isPlaying ? (expandMusicPlayer ? 40 : 50) : 100), topRight: Radius.circular(isPlaying ? (expandMusicPlayer ? 40 : 50) : 100), bottomLeft: Radius.circular(isPlaying ? 50 : 100), bottomRight: Radius.circular(isPlaying ? 50 : 100)),
@@ -215,14 +215,14 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
       child: Row(
         children: [
           ClipPath(
-            clipper: SquircleClipper(30),
+            clipper: SquircleClipper(20),
             child: Container(
-              width: 60,
-              height: 60,
+              width: 50,
+              height: 50,
               color: Color(0xFF342E1B),
               child: AlbumArtwork(
                 song: currentSong,
-                size: 40,
+                size: 50,
                 borderRadius: BorderRadius.circular(8),
                 nullIconColor: Color(0xFF342E1B),
                 backgroundColor: const Color(0xFFFFE695),
@@ -242,7 +242,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: GoogleFonts.rubik(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFFFFE695),
                   ),
@@ -253,7 +253,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: GoogleFonts.rubik(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFFFFE695),
                   ),
@@ -262,7 +262,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
             ),
           ),
 
-          SizedBox(width: 10,),
+          SizedBox(width: 5,),
 
           InkWell(
             onTap: () {
@@ -288,7 +288,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
             child: Icon(
               isLiked ? Icons.favorite : Icons.favorite_border,
               color: isLiked ? Colors.red : const Color(0xFFFFE695),
-              size: 35,
+              size: 28,
             ),
           ),
 
@@ -301,8 +301,8 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
             child: RotationTransition(
               turns: _vinylController,
               child: Container(
-                width: 55,
-                height: 55,
+                width: 45,
+                height: 45,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
@@ -320,19 +320,6 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
                   children: [
                     Center(
                       child: Container(
-                        width: 45,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: Container(
                         width: 35,
                         height: 35,
                         decoration: BoxDecoration(
@@ -348,6 +335,19 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
                       child: Container(
                         width: 25,
                         height: 25,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Container(
+                        width: 20,
+                        height: 20,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: Color(0xFFFDE68A),
@@ -355,7 +355,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
                         child: Center(
                           child: Icon( controller.isPlaying
                               ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded, size: 16, color: Colors.black,),
+                              : Icons.play_arrow_rounded, size: 18, color: Colors.black,),
                         ),
                       ),
                     ),
@@ -396,7 +396,7 @@ class _FluidNavBarState extends State<FluidNavBar> with SingleTickerProviderStat
               child: WaveformSlider(
                 barCount: 15,
                 height: 10,
-                fillColor: const Color(0xFF342E1B),
+                fillColor: const Color(0xFFFFE695),
                 thumbColor: const Color(0xFFFB923C),
                 inactiveColor: Colors.white,
                 thumbRadius: 8,

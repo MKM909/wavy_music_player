@@ -1,26 +1,25 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:wavy_muic_player/screens/music/album_viewing_page.dart';
+import 'package:wavy_muic_player/screens/music/artist_viewing_page.dart';
 
+import '../../clippers/squircle_clipper.dart';
 import '../../controllers/music_controller.dart';
-import '../../model/album.dart';
+import '../../model/artist.dart';
 import '../../services/music_library_service.dart';
 import '../../widgets/album_artwork.dart';
-import '../../clippers/squircle_clipper.dart';
 
-class Albums extends StatefulWidget {
-  const Albums({super.key,});
+class Artists extends StatefulWidget {
+  const Artists({super.key});
 
   @override
-  State<Albums> createState() => _AlbumsState();
+  State<Artists> createState() => _ArtistsState();
 }
 
-class _AlbumsState extends State<Albums> {
+class _ArtistsState extends State<Artists> {
   final MusicLibraryService _musicService = MusicLibraryService();
 
-  List<Album> albums = [];
+  List<Artist> artists = [];
   bool isScanning = false;
   int scanProgress = 0;
   int scanTotal = 0;
@@ -29,23 +28,23 @@ class _AlbumsState extends State<Albums> {
   @override
   void initState() {
     super.initState();
-    _loadAlbumsFast();
+    _loadArtistsFast();
   }
 
-  Future<void> _loadAlbumsFast() async {
+  Future<void> _loadArtistsFast() async {
     final cachedSongs = _musicService.getCachedSongs();
     if (cachedSongs != null && cachedSongs.isNotEmpty) {
-      albums = _musicService
-          .categorizeByAlbum(cachedSongs)
+      artists = _musicService
+          .categorizeByArtist(cachedSongs)
           .values
           .toList();
       setState(() {});
       return;
     }
-    await _loadAlbumsFull();
+    await _loadArtistsFull();
   }
 
-  Future<void> _loadAlbumsFull({bool forceRefresh = false, bool background = false}) async {
+  Future<void> _loadArtistsFull({bool forceRefresh = false, bool background = false}) async {
     setState(() {
       if(background == true){
         isScanning = false;
@@ -77,10 +76,10 @@ class _AlbumsState extends State<Albums> {
       },
     );
 
-    final albumMap = _musicService.categorizeByAlbum(songs);
+    final artistMap = _musicService.categorizeByArtist(songs);
 
     setState(() {
-      albums = albumMap.values.toList();
+      artists = artistMap.values.toList();
       isScanning = false;
     });
   }
@@ -89,18 +88,18 @@ class _AlbumsState extends State<Albums> {
   Widget build(BuildContext context) {
     if (isScanning) return _buildLoadingView();
     if (errorMessage != null) return _buildErrorView();
-    if (albums.isEmpty) return _buildEmptyView();
+    if (artists.isEmpty) return _buildEmptyView();
 
     return RefreshIndicator(
       displacement: 110,
       backgroundColor: const Color(0xFF342E1B),
       color: const Color(0xFFFFE695),
-      onRefresh: () async => _loadAlbumsFull(forceRefresh: true, background: true),
-      child: _buildAlbumList(),
+      onRefresh: () async => _loadArtistsFull(forceRefresh: true, background: true),
+      child: _buildArtistsList(),
     );
   }
 
-  Widget _buildAlbumList() {
+  Widget _buildArtistsList() {
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
       child: GridView.builder(
@@ -110,34 +109,34 @@ class _AlbumsState extends State<Albums> {
           crossAxisSpacing: 15,
           mainAxisSpacing: 15,
         ),
-        itemCount: albums.length,
+        itemCount: artists.length,
         itemBuilder: (context, index) {
-          return _buildAlbumCard(albums[index]);
+          return _buildArtistsCard(artists[index]);
         },
       ),
     );
   }
 
 
-  Widget _buildAlbumCard(Album album) {
+  Widget _buildArtistsCard(Artist artist) {
     return Consumer<MusicController>(
       builder: (context, controller, _) {
         final current = controller.currentSong;
-        final firstSong = album.songs.first;
+        final firstSong = artist.songs.first;
 
         final isPlayingFromPlaylist =
             current != null &&
-                album.songs.contains(current);
+                artist.songs.contains(current);
 
 
-        final songCount = album.songs.length;
+        final songCount = artist.songs.length;
 
         return GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AlbumViewingPage(album: album,),
+                builder: (context) => ArtistViewingPage(artist: artist ,),
               ),
             );
           },
@@ -176,8 +175,8 @@ class _AlbumsState extends State<Albums> {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: _buildAlbumInfo(
-                      album.name,
+                    child: _buildArtistInfo(
+                      artist.name,
                       songCount,
                       isPlayingFromPlaylist,
                     ),
@@ -191,7 +190,7 @@ class _AlbumsState extends State<Albums> {
     );
   }
 
-  Widget _buildAlbumInfo(
+  Widget _buildArtistInfo(
       String name,
       int count,
       bool isPlaying,
@@ -309,7 +308,7 @@ class _AlbumsState extends State<Albums> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => _loadAlbumsFull(forceRefresh: true),
+              onPressed: () => _loadArtistsFull(forceRefresh: true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF342E1B),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
