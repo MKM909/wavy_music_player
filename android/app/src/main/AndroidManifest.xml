@@ -15,7 +15,7 @@
 
 
     <application
-        android:label="wavy_muic_player"
+        android:label="@string/appName"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

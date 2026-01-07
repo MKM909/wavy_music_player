@@ -15,8 +15,11 @@ import '../../model/song.dart';
 import '../../services/liked_song_service.dart';
 import '../../services/music_library_service.dart';
 import '../../widgets/album_artwork.dart';
+import '../../widgets/spring_popup_menu.dart';
 
 class LikedSongsScreen extends StatefulWidget {
+  const LikedSongsScreen({super.key});
+
   @override
   State<LikedSongsScreen> createState() => _LikedSongsScreenState();
 }
@@ -25,6 +28,7 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
   final likedService = LikedSongsService();
   final musicService = MusicLibraryService();
   late final List<LikedSong> songs;
+  Offset? _tapPosition;
 
   @override
   void initState() {
@@ -173,169 +177,208 @@ class _LikedSongsScreenState extends State<LikedSongsScreen> {
                 musicController.currentSong?.filePath == likedSong.filePath;
             final isActuallyPlaying =
                 isCurrentSong && musicController.isPlaying;
-            return Dismissible(
-              key: ValueKey(likedSong.id),
-              direction: isActuallyPlaying
-                  ? DismissDirection.none
-                  : DismissDirection.endToStart,
-              background: _buildDismissBackground(),
-              onDismissed: (_) {
-                likedService.removeSong(likedSong.filePath);
-                HapticFeedback.mediumImpact();
-                final messenger = ScaffoldMessenger.of(context);
 
-                messenger.hideCurrentSnackBar(); // 👈 THIS is the missing piece
-
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Removed from liked songs'),
-                    action: SnackBarAction(
-                      label: 'UNDO',
-                      onPressed: () {
-                        likedService.addSong(likedSong);
-                      },
-                    ),
-                  ),
-                );
-                Future.delayed(Duration(seconds: 2),() => messenger.hideCurrentSnackBar());
-              },
-              child: ClipRRect(
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Material(
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(24),
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(24),
-                  child: InkWell(
-                    onTap: () {
-                      if (isCurrentSong) {
-                        musicController.togglePlayPause();
-                      } else {
-                        musicController.playSong(
-                          song,
-                          newQueue: likedService.getAllAsSongs(),
-                          startIndex: likedService.indexOf(likedSong.filePath),
-                        );
-                      }
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 10, top: 10),
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Center(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            ClipPath(
-                              clipper: SquircleClipper(20),
-                              child: Container(
-                                width: 60,
-                                height: 60,
-                                color: Color(0xFF342E1B),
-                                child: AlbumArtwork(
-                                  song: song,
-                                  size: 60,
-                                  borderRadius: BorderRadius.circular(8),
-                                  backgroundColor: const Color(0xFF342E1B),
+                child: InkWell(
+                  onTap: () {
+                    if (isCurrentSong) {
+                      musicController.togglePlayPause();
+                    } else {
+                      musicController.playSong(
+                        song,
+                        newQueue: likedService.getAllAsSongs(),
+                        startIndex: likedService.indexOf(likedSong.filePath),
+                      );
+                    }
+                  },
+                  onTapDown: (details) {
+                    _tapPosition = details.globalPosition;
+                  },
+                  onLongPress: () {
+                    if (_tapPosition == null) return;
+                    showSpringPopupMenu(
+                      context: context,
+                      position: _tapPosition!,
+                      items: [
+                        SpringMenuItem(
+                          icon: Icons.play_arrow,
+                          label: 'Play',
+                          onTap: () {
+                            if (isCurrentSong) {
+                              musicController.togglePlayPause();
+                            } else {
+                              musicController.playSong(
+                                song,
+                                newQueue: likedService.getAllAsSongs(),
+                                startIndex: likedService.indexOf(likedSong.filePath),
+                              );
+                            }
+                          },
+                        ),
+                        SpringMenuItem(
+                          icon: Icons.playlist_add,
+                          label: 'Add to Playlist',
+                          onTap: () {
+                            AddToPlaylistSheet.show(context, song: song);
+                          },
+                        ),
+                        SpringMenuItem(
+                          icon: Icons.add_to_queue_rounded,
+                          label: 'Add to queue',
+                          onTap: () async {
+                            await musicController.addToQueueNext(song);
+                          },
+                        ),
+                        SpringMenuItem(
+                          icon: Icons.delete_rounded,
+                          label: 'Remove from liked songs',
+                          onTap: () async {
+                            likedService.removeSong(likedSong.filePath);
+                            HapticFeedback.mediumImpact();
+                            final messenger = ScaffoldMessenger.of(context);
+
+                            messenger.hideCurrentSnackBar(); // 👈 THIS is the missing piece
+
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: const Text('Removed from liked songs'),
+                                action: SnackBarAction(
+                                  label: 'UNDO',
+                                  onPressed: () {
+                                    likedService.addSong(likedSong);
+                                  },
+                                ),
+                              ),
+                            );
+                            Future.delayed(Duration(seconds: 2),() => messenger.hideCurrentSnackBar());
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(bottom: 10, top: 10),
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Center(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ClipPath(
+                            clipper: SquircleClipper(20),
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              color: Color(0xFF342E1B),
+                              child: AlbumArtwork(
+                                song: song,
+                                size: 60,
+                                borderRadius: BorderRadius.circular(8),
+                                backgroundColor: const Color(0xFF342E1B),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(width: 15,),
+
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  song.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.rubik(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                    color: isActuallyPlaying
+                                        ? Colors.orange
+                                        : const Color(0xFF342E1B),
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  musicService.getFormattedFileSize(song.fileSize),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.rubik(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: isActuallyPlaying
+                                        ? Colors.orange
+                                        : const Color(0xFF342E1B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(width: 15,),
+
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  AddToPlaylistSheet.show(context, song: song);
+                                },
+                                child: Center(
+                                  child: Icon(
+                                    Icons.playlist_add,
+                                    color: Color(0xFF342E1B),
+                                    size: 30,
+                                  ),
                                 ),
                               ),
                             ),
-
-                            SizedBox(width: 15,),
-
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    song.title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.rubik(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
-                                      color: isActuallyPlaying
-                                          ? Colors.orange
-                                          : const Color(0xFF342E1B),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    musicService.getFormattedFileSize(song.fileSize),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.rubik(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: isActuallyPlaying
-                                          ? Colors.orange
-                                          : const Color(0xFF342E1B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(width: 15,),
-
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
+                          ),
+                          SizedBox(width: 10,),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: () {
-                                    AddToPlaylistSheet.show(context, song: song);
+                                    if (isCurrentSong) {
+                                      musicController.togglePlayPause();
+                                    } else {
+                                      musicController.playSong(
+                                        song,
+                                        newQueue: likedService.getAllAsSongs(),
+                                        startIndex: likedService.indexOf(
+                                            likedSong.filePath),
+                                      );
+                                    }
                                   },
-                                  child: Center(
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF342E1B).withValues(alpha: 0.5),
+                                    ),
                                     child: Icon(
-                                      Icons.playlist_add,
-                                      color: Color(0xFF342E1B),
-                                      size: 30,
+                                      isCurrentSong ? (isActuallyPlaying ? Icons.pause : Icons.play_arrow) : Icons.play_arrow_rounded,
+                                      color: Colors.white,
+                                      size: 25,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                            SizedBox(width: 10,),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10, tileMode: TileMode.clamp),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () {
-                                      if (isCurrentSong) {
-                                        musicController.togglePlayPause();
-                                      } else {
-                                        musicController.playSong(
-                                          song,
-                                          newQueue: likedService.getAllAsSongs(),
-                                          startIndex: likedService.indexOf(
-                                              likedSong.filePath),
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(0xFF342E1B).withValues(alpha: 0.5),
-                                      ),
-                                      child: Icon(
-                                        isCurrentSong ? (isActuallyPlaying ? Icons.pause : Icons.play_arrow) : Icons.play_arrow_rounded,
-                                        color: Colors.white,
-                                        size: 25,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

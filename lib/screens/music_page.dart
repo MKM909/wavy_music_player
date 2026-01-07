@@ -270,7 +270,8 @@ class _MusicPageState extends State<MusicPage> {
     return SizedBox(
       height: 50,
       child: ListView.builder(
-        controller: _scrollController,
+          physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          controller: _scrollController,
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.only(left: 20, right: 10),

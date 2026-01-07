@@ -3,7 +3,7 @@
     "short_name": "wavy_muic_player",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
+    "background_color": "#ffffff",
     "theme_color": "#0175C2",
     "description": "A muic player with stuning wave like ui",
     "orientation": "portrait-primary",

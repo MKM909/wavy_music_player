@@ -13,6 +13,7 @@ import '../../controllers/music_controller.dart';
 import '../../model/song.dart';
 import '../../services/music_library_service.dart';
 import '../../widgets/album_artwork.dart';
+import '../../widgets/spring_popup_menu.dart';
 
 
 class DownloadedSongs extends StatefulWidget {
@@ -30,6 +31,7 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
   int scanProgress = 0;
   int scanTotal = 0;
   String? errorMessage;
+  Offset? _tapPosition;
 
   @override
   void initState() {
@@ -266,6 +268,43 @@ class _DownloadedSongsState extends State<DownloadedSongs> {
                       startIndex: songs.indexOf(song),
                     );
                   }
+                },
+                onTapDown: (details) {
+                  _tapPosition = details.globalPosition;
+                },
+                onLongPress: () {
+                  if (_tapPosition == null) return;
+                  showSpringPopupMenu(
+                    context: context,
+                    position: _tapPosition!,
+                    items: [
+                      SpringMenuItem(
+                        icon: Icons.play_arrow,
+                        label: 'Play',
+                        onTap: () {
+                          musicController.playSong(
+                            song,
+                            newQueue: songs,
+                            startIndex: songs.indexOf(song),
+                          );
+                        },
+                      ),
+                      SpringMenuItem(
+                        icon: Icons.playlist_add,
+                        label: 'Add to Playlist',
+                        onTap: () {
+                          AddToPlaylistSheet.show(context, song: song);
+                        },
+                      ),
+                      SpringMenuItem(
+                        icon: Icons.add_to_queue_rounded,
+                        label: 'Add to queue',
+                        onTap: () async {
+                          await musicController.addToQueueNext(song);
+                        },
+                      ),
+                    ],
+                  );
                 },
                 splashColor: Color(0xFF342E1B).withValues(alpha: 0.2),
                 focusColor: Color(0xFF342E1B).withValues(alpha: 0.2),

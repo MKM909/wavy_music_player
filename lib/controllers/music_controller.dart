@@ -147,7 +147,16 @@ class MusicController extends ChangeNotifier {
   Future<void> playAt(int index) async {
     if (index < 0 || index >= _queue.length) return;
     _currentIndex = index;
-    await playSong(_queue[index]);
+
+    _currentSong = _queue[index];
+
+    // ✅ Update AudioHandler with correct index
+    await _audioHandler.setCurrentMediaItem(_queue[index]);
+    _audioHandler.playbackState.add(
+      _audioHandler.playbackState.value.copyWith(queueIndex: _currentIndex),
+    );
+
+    await _restartAndPlay(_queue[index]);
   }
 
 
@@ -266,6 +275,26 @@ class MusicController extends ChangeNotifier {
     return items;
   }
 
+  // ========== QUEUE MANIPULATION ==========
+
+  Future<void> addToQueueNext(Song song) async {
+    // Insert right after current song
+    final insertIndex = _currentIndex + 1;
+
+    _queue.insert(insertIndex, song);
+    _originalQueue.insert(insertIndex, song);
+
+    _audioHandler.updateQueue(await _queueToMediaItems(_queue));
+    notifyListeners();
+  }
+
+  Future<void> addToQueue(Song song) async {
+    _queue.add(song);
+    _originalQueue.add(song);
+    _audioHandler.updateQueue(await _queueToMediaItems(_queue));
+    notifyListeners();
+  }
+
   // ========== SHUFFLE & REPEAT ==========
 
   Future<void> toggleShuffle() async {
@@ -317,7 +346,7 @@ class MusicController extends ChangeNotifier {
 
   // ========== QUEUE MANIPULATION ==========
 
-  Future<void> addToQueue(Song song) async {
+  Future<void> addToQueue1(Song song) async {
     _queue.add(song);
     _originalQueue.add(song);
     _audioHandler.updateQueue(await _queueToMediaItems(_queue));

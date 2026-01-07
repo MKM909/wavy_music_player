@@ -1,32 +1,15 @@
 name: wavy_muic_player
 description: "A muic player with stuning wave like ui"
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
+
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
+
 version: 1.0.0+1
 
 environment:
   sdk: ^3.10.4
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
@@ -46,13 +29,71 @@ dependencies:
   audiotags: ^1.4.5
   objectbox_flutter_libs: ^2.5.1
   audio_session: ^0.1.25
+  flutter_native_splash: 2.4.7
   carousel_slider: ^5.1.1
+
+launcher_name:
+  default: "Wavy"
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  remove_alpha_ios: true
+  background_color_ios: "#ffffff"
+  image_path: "assets/icon/wavy_icon.png"
+
+  image_path_android: "assets/icon/wavy_icon.png"
+  adaptive_icon_background: "assets/icon/wavy_icon_background.png" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/icon/wavy_icon_foreground.png" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground_inset: 16 # only available for Android 8.0 devices and above
+  adaptive_icon_monochrome: "assets/icon/wavy_icon_adaptable.png" # only available for Android 13 devices and above
+
+  image_path_ios: "assets/icon/wavy_icon.png"
+  image_path_ios_dark_transparent: "assets/icon/wavy_icon_transparent.png"
+  image_path_ios_tinted_grayscale: "assets/icon/wavy_icon_monochrome.png"
+  desaturate_tinted_to_grayscale_ios: true
+  # background_color_ios: "#ffffff"
+  web:
+    generate: true
+    image_path: "assets/icon/wavy_icon.png"
+    background_color: "#ffffff"
+  macos:
+    generate: true
+    image_path: "assets/icon/wavy_icon.png"
+    background_color: "#ffffff"
+  windows:
+    generate: true
+    image_path: "assets/icon/wavy_icon.png"
+    background_color: "#ffffff"
+
+flutter_native_splash:
+  android: true
+  ios: true
+  web: false
+
+  image: "assets/icon/wavy_splash_image.png"
+  color: "#FFE695"
+
+  image_dark: "assets/icon/wavy_splash_image.png"
+  color_dark: "#342E1B"
+
+  android_12:
+    image: "assets/icon/wavy_splash_image.png"
+    color: "#FFE695"
+
+    image_dark: "assets/icon/wavy_splash_image.png"
+    color_dark: "#342E1B"
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: ^2.4.0
   objectbox_generator: ^2.0.0
+  change_app_package_name: 1.4.0
+  launcher_name: 1.0.2
+  flutter_launcher_icons: 0.14.1
 
 
   flutter_lints: ^6.0.0
